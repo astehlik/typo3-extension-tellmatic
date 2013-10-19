@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2011-10-17T20:22:32Z" product-name="tellmatic">
+		<header/>
+		<body>
+			<trans-unit id="legend_email" xml:space="preserve">
+				<source>E-mail address</source>
+			</trans-unit>
+			<trans-unit id="legend_name" xml:space="preserve">
+				<source>Name</source>
+			</trans-unit>
+			<trans-unit id="legend_submit" xml:space="preserve">
+				<source>Submit subscription</source>
+			</trans-unit>
+			<trans-unit id="gender" xml:space="preserve">
+				<source>Salutation</source>
+			</trans-unit>
+			<trans-unit id="gender_male" xml:space="preserve">
+				<source>Mr.</source>
+			</trans-unit>
+			<trans-unit id="gender_female" xml:space="preserve">
+				<source>Ms.</source>
+			</trans-unit>
+			<trans-unit id="first_name" xml:space="preserve">
+				<source>First name</source>
+			</trans-unit>
+			<trans-unit id="last_name" xml:space="preserve">
+				<source>Last name</source>
+			</trans-unit>
+			<trans-unit id="email" xml:space="preserve">
+				<source>E-mail</source>
+			</trans-unit>
+			<trans-unit id="submit" xml:space="preserve">
+				<source>Submit</source>
+			</trans-unit>
+			<trans-unit id="global_error_header" xml:space="preserve">
+				<source>Error!</source>
+			</trans-unit>
+			<trans-unit id="global_error_message" xml:space="preserve">
+				<source><![CDATA[Not all reqired fields have been filled out or a field contains an invalid value.<br />Please check the data you submitted.]]></source>
+			</trans-unit>
+			<trans-unit id="error_gender_required" xml:space="preserve">
+				<source>Please provide your salutation.</source>
+			</trans-unit>
+			<trans-unit id="error_first_name_required" xml:space="preserve">
+				<source>Please provide your first name.</source>
+			</trans-unit>
+			<trans-unit id="error_last_name_required" xml:space="preserve">
+				<source>Please provide your last name.</source>
+			</trans-unit>
+			<trans-unit id="error_email_required" xml:space="preserve">
+				<source>Please provide your e-mail address.</source>
+			</trans-unit>
+			<trans-unit id="error_email_email" xml:space="preserve">
+				<source>Phe provided e-mail address seems to have an invalid format.</source>
+			</trans-unit>
+			<trans-unit id="required_fields" xml:space="preserve">
+				<source>Fields marked with * are required.</source>
+			</trans-unit>
+			<trans-unit id="error_tellmatic_unknown" xml:space="preserve">
+				<source>An unknown error occured during the subscription request. Please try again.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

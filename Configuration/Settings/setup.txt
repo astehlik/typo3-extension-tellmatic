@@ -1,0 +1,75 @@
+
+	# Page that contains the formhandler subscription plugin for handling ajax requests
+tx_formhandler_subscription_ajax_subscribe = PAGE
+tx_formhandler_subscription_ajax_subscribe {
+	typeNum = 254447653
+	config.disableAllHeaderCode = 1
+	10 < plugin.tx_formhandler_pi1
+	10.usePredef = formhandler_subscription_request_subscription_ajax.
+	10.controller = Tx_FormhandlerSubscription_Controller_AjaxSubmitController
+}
+
+plugin.Tx_Formhandler.settings.predef {
+
+
+	tellmatic_request_subscription < .formhandler_subscription_request_subscription
+	tellmatic_request_subscription {
+
+		name = Tellmatic - Request subscription
+
+		finishers {
+
+			1 >
+			1.class = Sto\Tellmatic\Formhandler\SubscriptionStateSwitch
+			1.config {
+
+				email.mapping = email
+
+				// new subscribers will be handled by tellmatic subscription
+				newSubscriber {
+
+					10.class = Sto\Tellmatic\Formhandler\Subscriber
+					10.config {
+						fields {
+							f0.mapping = gender
+							f1.mapping = last_name
+							f2.mapping = first_name
+							email.mapping = email
+						}
+					}
+				}
+
+				// unconfirmed subscribers will be handled by tellmatic subscription
+				existingUnconfirmedSubscriber < .finishersNewSubscriber
+
+				// existing & confirmed subscribers will get an auth code mail
+				existingConfirmedSubscriber < plugin.Tx_Formhandler.settings.predef.formhandler_subscription_request_subscription.finishers.1.config.finishersExistingConfirmedSubscriber
+				existingConfirmedSubscriber {
+
+					// reconfigure auth code generation
+					20.config {
+						independentMode = 1
+						identifier = TEXT
+						identifier.data = GP:tx_formhandler_subscription|email
+						context = tellmatic_subscription
+					}
+				}
+			}
+		}
+	}
+
+	tellmatic_request_update < .formhandler_subscription_request_update
+	tellmatic_request_update {
+		name = Tellmatic - Request update
+	}
+
+	tellmatic_update_subscription < .formhandler_subscription_update_subscription
+	tellmatic_update_subscription {
+		name = Tellmatic - Update subscription
+	}
+
+	tellmatic_remove_subscription < .formhandler_subscription_remove_subscription
+	tellmatic_remove_subscription {
+		name = Tellmatic - Remove subscripion
+	}
+}
