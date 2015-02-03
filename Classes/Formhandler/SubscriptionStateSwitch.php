@@ -58,6 +58,7 @@ class SubscriptionStateSwitch extends \Tx_FormhandlerSubscription_Finisher_Subsc
 		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
 		$tellmaticClient = $objectManager->get('Sto\\Tellmatic\\Tellmatic\\TellmaticClient');
 		$tellmaticResponse = $tellmaticClient->getSubscribeState($email);
+		$result = '';
 
 		switch ($tellmaticResponse->getSubscribeState()) {
 			case \Sto\Tellmatic\Tellmatic\SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
@@ -81,4 +82,3 @@ class SubscriptionStateSwitch extends \Tx_FormhandlerSubscription_Finisher_Subsc
 		}
 	}
 }
-?>

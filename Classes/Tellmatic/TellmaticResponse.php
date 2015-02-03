@@ -127,5 +127,3 @@ class TellmaticResponse {
 		$this->failureReason = NULL;
 	}
 }
-
-?>

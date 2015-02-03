@@ -90,5 +90,3 @@ class SubscribeValidator extends \Tx_Formhandler_Finisher_DB {
 		return $tellmaticClient->sendSubscribeRequest($email, $queryFields);
 	}
 }
-
-?>

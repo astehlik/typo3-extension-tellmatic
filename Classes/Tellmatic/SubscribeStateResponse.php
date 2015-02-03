@@ -65,5 +65,3 @@ class SubscribeStateResponse extends TellmaticResponse {
 		$this->subscribeState = $subscribeState;
 	}
 }
-
-?>

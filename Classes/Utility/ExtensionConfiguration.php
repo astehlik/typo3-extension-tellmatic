@@ -62,5 +62,3 @@ class ExtensionConfiguration implements \TYPO3\CMS\Core\SingletonInterface {
 		return $tellmaticUrl . '/';
 	}
 }
-
-?>

@@ -223,5 +223,3 @@ class TellmaticClient {
 		return $url;
 	}
 }
-
-?>
