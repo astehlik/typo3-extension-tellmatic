@@ -11,6 +11,14 @@ namespace Sto\Tellmatic\Tellmatic;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
+use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
+use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
+use TYPO3\CMS\Core\Http\HttpRequest;
+
+/**
+ * Client for executing API request on a Tellmatic server.
+ */
 class TellmaticClient {
 
 	/**
@@ -21,57 +29,25 @@ class TellmaticClient {
 	protected $customUrl;
 
 	/**
-	 * @var \Sto\Tellmatic\Utility\ExtensionConfiguration
-	 * @inject
-	 */
-	protected $extensionConfiguration;
-
-	/**
 	 * Default URLs to the different APIs
 	 *
 	 * @var array
 	 */
 	protected $defaultUrls = array(
 		'subscribeRequest' => 'api_subscribe.php',
-		'getSubscribeState' => 'api_subscribe_sate.php',
+		'getSubscribeState' => 'api_subscribe_state.php',
 	);
 
 	/**
-	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
+	 * @var \Sto\Tellmatic\Utility\ExtensionConfiguration
 	 * @inject
 	 */
-	protected $objectManager;
-
-	/**
-	 * This array will be used to check if all provided additional
-	 * fields are valid.
-	 *
-	 * @var array
-	 */
-	protected $allowedAdditionalFields = array(
-		'f0' => '',
-		'f1' => '',
-		'f2' => '',
-		'f3' => '',
-		'f4' => '',
-		'f5' => '',
-		'f6' => '',
-		'f7' => '',
-		'f8' => '',
-		'f9' => '',
-	);
+	protected $extensionConfiguration;
 
 	/**
 	 * @var \TYPO3\CMS\Core\Http\HttpRequest
 	 */
 	protected $httpRequest;
-
-	/**
-	 * The class that should be used as response
-	 *
-	 * @var string
-	 */
-	protected $responseClass = 'Sto\\Tellmatic\\Tellmatic\TellmaticResponse';
 
 	/**
 	 * Configuration that should be used for the HTTP request
@@ -83,23 +59,21 @@ class TellmaticClient {
 	);
 
 	/**
-	 * If no HTTP request was set externally it will be created.
-	 *
-	 * Additionally the configuration of the HTTP request will be
-	 * initialized.
+	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
+	 * @inject
 	 */
-	protected function initializeHttpRequest() {
+	protected $objectManager;
 
-		if (!isset($this->httpRequest)) {
-			$this->httpRequest = $this->objectManager->get('TYPO3\\CMS\\Core\\Http\\HttpRequest');
-		}
-
-		$this->httpRequest->setConfiguration($this->httpRequestConfiguration);
-	}
+	/**
+	 * The class that should be used as response
+	 *
+	 * @var string
+	 */
+	protected $responseClass = TellmaticResponse::class;
 
 	/**
 	 * @param string $email
-	 * @return \Sto\Tellmatic\Tellmatic\SubscribeStateResponse
+	 * @return \Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse
 	 * @throws \RuntimeException
 	 */
 	public function getSubscribeState($email) {
@@ -111,37 +85,24 @@ class TellmaticClient {
 			throw new \RuntimeException('The provided email address is invalid');
 		}
 
-		$this->responseClass = 'Sto\\Tellmatic\Tellmatic\\SubscribeStateResponse';
+		$this->responseClass = SubscribeStateResponse::class;
 		$this->httpRequest->addPostParameter('email', $email);
 
 		return $this->doRequestAndGenerateResponse();
 	}
 
 	/**
-	 * @param string $email The email address that should be subscribed
-	 * @param array $additionalFields Optional array containing additional field data (f0 - f9)
-	 * @throws \RuntimeException
-	 * @return \Sto\Tellmatic\Tellmatic\TellmaticResponse
+	 * Sends a subscribe request to the Tellmatic server.
+	 *
+	 * @param SubscribeRequest $subscribeRequest
+	 * @return TellmaticResponse
 	 */
-	public function sendSubscribeRequest($email, $additionalFields = array()) {
+	public function sendSubscribeRequest($subscribeRequest) {
 
 		$this->initializeHttpRequest();
 		$this->httpRequest->setUrl($this->getUrl('subscribeRequest'));
 
-		if (!\TYPO3\CMS\Core\Utility\GeneralUtility::validEmail($email)) {
-			throw new \RuntimeException('The provided email address is invalid');
-		}
-
-		$this->httpRequest->addPostParameter('email', $email);
-
-		$invalidAdditionalFields = array_diff_key($additionalFields, $this->allowedAdditionalFields);
-		if (count($invalidAdditionalFields)) {
-			throw new \RuntimeException('You provided invalid additional Fields: ' . implode(', ', array_keys($invalidAdditionalFields)));
-		}
-
-		foreach ($additionalFields as $name => $value) {
-			$this->httpRequest->addPostParameter($name, $value);
-		}
+		$subscribeRequest->initializeHttpRequest($this->httpRequest);
 
 		return $this->doRequestAndGenerateResponse();
 	}
@@ -167,13 +128,19 @@ class TellmaticClient {
 	}
 
 	/**
-	 * @return \Sto\Tellmatic\Tellmatic\TellmaticResponse
+	 * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
+	 */
+	protected function createResponse() {
+		return $this->objectManager->get($this->responseClass);
+	}
+
+	/**
+	 * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
 	 * @throws \RuntimeException
 	 */
 	protected function doRequestAndGenerateResponse() {
 
-		/** @var \Sto\Tellmatic\Tellmatic\TellmaticResponse $tellmaticResponse */
-		$tellmaticResponse = $this->objectManager->get($this->responseClass);
+		$tellmaticResponse = $this->createResponse();
 
 		$this->httpRequest->setMethod('POST');
 		$httpResponse = $this->httpRequest->send();
@@ -221,5 +188,20 @@ class TellmaticClient {
 		}
 
 		return $url;
+	}
+
+	/**
+	 * If no HTTP request was set externally it will be created.
+	 *
+	 * Additionally the configuration of the HTTP request will be
+	 * initialized.
+	 */
+	protected function initializeHttpRequest() {
+
+		if (!isset($this->httpRequest)) {
+			$this->httpRequest = $this->objectManager->get(HttpRequest::class);
+		}
+
+		$this->httpRequest->setConfiguration($this->httpRequestConfiguration);
 	}
 }

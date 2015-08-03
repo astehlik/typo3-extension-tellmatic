@@ -11,10 +11,13 @@ namespace Sto\Tellmatic\Utility;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Extbase\Utility\ArrayUtility;
+
 /**
  * Provides access to the global extension configuration
  */
-class ExtensionConfiguration implements \TYPO3\CMS\Core\SingletonInterface {
+class ExtensionConfiguration implements SingletonInterface {
 
 	/**
 	 * Array containing default settings
@@ -41,7 +44,7 @@ class ExtensionConfiguration implements \TYPO3\CMS\Core\SingletonInterface {
 
 		if (isset($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic'])) {
 			$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic']);
-			$this->settings = \TYPO3\CMS\Core\Utility\GeneralUtility::array_merge_recursive_overrule($this->settings, $settings);
+			ArrayUtility::arrayMergeRecursiveOverrule($this->settings, $settings);
 		}
 	}
 

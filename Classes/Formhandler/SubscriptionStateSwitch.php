@@ -11,7 +11,25 @@ namespace Sto\Tellmatic\Formhandler;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-class SubscriptionStateSwitch extends \Tx_FormhandlerSubscription_Finisher_Subscribe {
+use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
+use Sto\Tellmatic\Tellmatic\TellmaticClient;
+use Tx_Formhandler_AbstractFinisher as FormhandlerAbstractFinisher;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+
+/**
+ * Runs different finishers depending on the current Tellmatic subscription state.
+ */
+class SubscriptionStateSwitch extends FormhandlerAbstractFinisher {
+
+	/**
+	 * If this is true the template suffix will be set according
+	 * to the current database query result. These suffixes will
+	 * be used: _NEW_SUBSCRIBER, _UNCONFIRMED_SUBSCRIBER and
+	 * _CONFIRMED_SUBSCRIBER
+	 *
+	 * @var bool
+	 */
+	var $setTemplateSuffix = TRUE;
 
 	/**
 	 * Inits the finisher mapping settings values to internal attributes.
@@ -55,21 +73,21 @@ class SubscriptionStateSwitch extends \Tx_FormhandlerSubscription_Finisher_Subsc
 		 * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
 		 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
 		 */
-		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
-		$tellmaticClient = $objectManager->get('Sto\\Tellmatic\\Tellmatic\\TellmaticClient');
+		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(ObjectManager::class);
+		$tellmaticClient = $objectManager->get(TellmaticClient::class);
 		$tellmaticResponse = $tellmaticClient->getSubscribeState($email);
 		$result = '';
 
 		switch ($tellmaticResponse->getSubscribeState()) {
-			case \Sto\Tellmatic\Tellmatic\SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
+			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
 				$this->setTemplateSuffix('_UNCONFIRMED_SUBSCRIBER');
 				$result = $this->runFinishers($this->settings['existingUnconfirmedSubscriber.']);
 				break;
-			case \Sto\Tellmatic\Tellmatic\SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
+			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
 				$this->setTemplateSuffix('_CONFIRMED_SUBSCRIBER');
 				$result = $this->runFinishers($this->settings['existingConfirmedSubscriber.']);
 				break;
-			case \Sto\Tellmatic\Tellmatic\SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED:
+			case SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED:
 				$this->setTemplateSuffix('_NEW_SUBSCRIBER');
 				$result = $this->runFinishers($this->settings['newSubscriber.']);
 				break;
@@ -79,6 +97,74 @@ class SubscriptionStateSwitch extends \Tx_FormhandlerSubscription_Finisher_Subsc
 			return $result;
 		} else {
 			return $this->gp;
+		}
+	}
+
+	/**
+	 * Adds some default configuration to a compontent.
+	 *
+	 * @see Tx_Formhandler_Controller_Form::addDefaultComponentConfig()
+	 * @param array $conf
+	 * @return array
+	 */
+	protected function addDefaultComponentConfig($conf) {
+		$conf['langFiles'] = $this->settings['langFiles'];
+		$conf['formValuesPrefix'] = $this->settings['formValuesPrefix'];
+		$conf['templateSuffix'] = $this->settings['templateSuffix'];
+		return $conf;
+	}
+
+	/**
+	 * Runs the finishers configured in the given configuration array.
+	 *
+	 * @see Tx_Formhandler_Controller_Form::processFinished()
+	 * @param array $finisherConfig
+	 * @return string
+	 */
+	protected function runFinishers($finisherConfig) {
+
+		$returnValue = NULL;
+		ksort($finisherConfig);
+
+		foreach ($finisherConfig as $idx => $tsConfig) {
+			if ($idx !== 'disabled') {
+				$className = $this->utilityFuncs->getPreparedClassName($tsConfig);
+				if (is_array($tsConfig) && strlen($className) > 0) {
+					if (intval($this->utilityFuncs->getSingle($tsConfig, 'disable')) !== 1) {
+
+						/** @var \Tx_Formhandler_AbstractComponent $finisher */
+						/** @noinspection PhpVoidFunctionResultUsedInspection */
+						$finisher = $this->componentManager->getComponent($className);
+						$tsConfig['config.'] = $this->addDefaultComponentConfig($tsConfig['config.']);
+						$finisher->init($this->gp, $tsConfig['config.']);
+						$finisher->validateConfig();
+
+						// if the finisher returns HTML (e.g. Tx_Formhandler_Finisher_SubmittedOK)
+						if (intval($this->utilityFuncs->getSingle($tsConfig['config.'], 'returns')) === 1) {
+							$returnValue = $finisher->process();
+							break;
+						} else {
+							$this->gp = $finisher->process();
+							$this->globals->setGP($this->gp);
+						}
+					}
+				} else {
+					$this->utilityFuncs->throwException('classesarray_error');
+				}
+			}
+		}
+
+		return $returnValue;
+	}
+
+	/**
+	 * Sets the template suffix to the given string if this was not disabled in the settings.
+	 *
+	 * @param string $templateSuffix
+	 */
+	protected function setTemplateSuffix($templateSuffix) {
+		if ($this->setTemplateSuffix) {
+			$this->globals->setTemplateSuffix($templateSuffix);
 		}
 	}
 }

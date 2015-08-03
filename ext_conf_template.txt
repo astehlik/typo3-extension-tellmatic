@@ -1,2 +1,5 @@
 	# cat=basic/enable/1; type=string; label=tellmatic URL: The base URL to the tellmatic installation.
 tellmaticUrl =
+
+	# cat=basic/enable/2; type=string; label=tellmatic API Key: The key for accessing the Tellmatic API.
+tellmaticApiKey =

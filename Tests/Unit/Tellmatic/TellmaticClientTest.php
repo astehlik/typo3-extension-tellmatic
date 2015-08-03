@@ -1,107 +1,189 @@
 <?php
 namespace Sto\Tellmatic\Tests\Unit\Tellmatic;
 
-use Sto\Tellmatic\Tellmatic\TellmaticResponse;
+/*                                                                        *
+ * This script belongs to the TYPO3 extension "tellmatic".                *
+ *                                                                        *
+ * It is free software; you can redistribute it and/or modify it under    *
+ * the terms of the GNU General Public License, either version 3 of the   *
+ * License, or (at your option) any later version.                        *
+ *                                                                        *
+ * The TYPO3 project - inspiring people to share!                         *
+ *                                                                        */
 
-class TellmaticClientTest extends \TYPO3\CMS\Extbase\Tests\Unit\BaseTestCase {
+use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
+use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-	public function tellmaticClientReturnsValidResponseDataProvider() {
+/**
+ * Test for the Tellmatic client and the API.
+ */
+class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
+
+	/**
+	 * @var string
+	 */
+	protected $responseDataValid;
+
+	/**
+	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient|\PHPUnit_Framework_MockObject_MockObject
+	 */
+	protected $tellmaticClient;
+
+	/**
+	 * @var TellmaticResponse
+	 */
+	protected $tellmaticResponse;
+
+	/**
+	 * @var
+	 */
+	protected $testEmailInvalid = 'no email';
+
+	/**
+	 * @var
+	 */
+	protected $testEmailValid = 'tellmatic-test@swebhosting.de';
+
+	/**
+	 * @var string
+	 */
+	protected $testUrlInvalid = 'a nonsense URL';
+
+	/**
+	 * @var string
+	 */
+	protected $testUrlValid = 'http://tellmatic-test.swebhosting.de';
+
+	/**
+	 * Initializes the Tellmatic client.
+	 */
+	public function setUp() {
+
+		$this->responseDataValid = json_encode(array(
+			'success' => TRUE,
+		));
+
+		$this->tellmaticResponse = GeneralUtility::makeInstance(TellmaticResponse::class);
+
+		$this->tellmaticClient = $this->getMock(\Sto\Tellmatic\Tellmatic\TellmaticClient::class, array('dummy', 'createResponse'));
+		$this->tellmaticClient->expects($this->once())->method('createResponse')->will($this->returnValue($this->tellmaticResponse));
+		$this->tellmaticClient->setCustomUrl($this->testUrlValid);
+	}
+
+	/**
+	 * @test
+	 */
+	public function sendSubscribeRequestReturnsTrueOnSuccess() {
+
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
+		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($this->responseDataValid));
+
+		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
+
+		/** @var SubscribeRequest $subscribeRequest */
+		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
+
+		$this->tellmaticClient->setHttpRequest($httpRequest);
+		$tellmaticResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+
+		$this->assertTrue($tellmaticResponse->getSuccess());
+	}
+
+	/**
+	 * @test
+	 * @dataProvider sendSubscribeRequestReturnsValidFailureCodeDataProvider
+	 * @param string $responseData
+	 * @param $expectedFailureCode
+	 */
+	public function sendSubscribeRequestReturnsValidFailureCode($responseData, $expectedFailureCode) {
+
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
+		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
+
+		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
+
+		/** @var SubscribeRequest $subscribeRequest */
+		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
+
+		$this->tellmaticClient->setHttpRequest($httpRequest);
+		$tellmaticResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+
+		$this->assertFalse($tellmaticResponse->getSuccess());
+		$this->assertEquals($expectedFailureCode, $tellmaticResponse->getFailureCode());
+	}
+
+	/**
+	 * @return array
+	 */
+	public function sendSubscribeRequestReturnsValidFailureCodeDataProvider() {
 
 		return array(
-			'nonexistingUrl' => array(
-				'responseStatus' => 400,
-				'responseData' => '',
-				'callGetBody' => FALSE,
-				'success' => FALSE,
-				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_UNKNOWN
-			),
-			'invalidJson' => array(
-				'responseStatus' => 200,
-				'responseData' => 'Not a JSON string',
-				'callGetBody' => TRUE,
-				'success' => FALSE,
-				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_UNKNOWN
-			),
 			'validJsonInvalidData' => array(
-				'responseStatus' => 200,
 				'responseData' => json_encode(array('this', 'json', 'data', 'is', 'nonsense')),
-				'callGetBody' => TRUE,
-				'success' => FALSE,
 				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_INVALID_RESPONSE,
 			),
 			'validJsonInvalidEmail' => array(
-				'responseStatus' => 200,
 				'responseData' => json_encode(array(
-					'success' => FALSE,
 					'failure_code' => TellmaticResponse::FAILURE_CODE_INVALID_EMAIL,
 					'failure_reason' => 'Invalid mail',
 				)),
-				'callGetBody' => TRUE,
-				'success' => FALSE,
 				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_INVALID_EMAIL,
 			),
 			'validJsonInvalidFormData' => array(
-				'responseStatus' => 200,
 				'responseData' => json_encode(array(
-					'success' => FALSE,
 					'failure_code' => TellmaticResponse::FAILURE_CODE_INVALID_FORM_DATA,
 					'failure_reason' => 'Invalid mail',
 				)),
-				'callGetBody' => TRUE,
-				'success' => FALSE,
 				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_INVALID_FORM_DATA,
-			),
-			'validJsonValidFormData' => array(
-				'responseStatus' => 200,
-				'responseData' => json_encode(array(
-					'success' => TRUE,
-				)),
-				'callGetBody' => TRUE,
-				'success' => TRUE,
-				'expectedFailureCode' => '',
 			),
 		);
 	}
 
 	/**
-	 * @param int $responseStatus
-	 * @param string $responseData
-	 * @param bool $callGetBody
-	 * @param bool $success
-	 * @param $expectedFailureCode
-	 * @internal param string $expectedResponse
-	 * @return \Sto\Tellmatic\Tellmatic\TellmaticClient
-	 * @dataProvider tellmaticClientReturnsValidResponseDataProvider
 	 * @test
+	 * @expectedException \RuntimeException
 	 */
-	public function tellmaticClientReturnsValidResponse($responseStatus, $responseData, $callGetBody, $success, $expectedFailureCode) {
-
-		$url = 'dummyurl';
+	public function sendSubscribeRequestThrowsExceptionOnErrorResponseCode() {
 
 		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody', 'getReasonPhrase', 'getEffectiveUrl'));
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue($responseStatus));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_NOT_FOUND));
 
-		if ($callGetBody) {
-			$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
-		}
-
-		$httpRequest = $this->getMock('TYPO3\\CMS\\Core\\Http\\HttpRequest', array('setConfiguration', 'setUrl', 'addPostParameter', 'send', 'getStatus', 'getBody'));
-		$httpRequest->expects($this->once())->method('setConfiguration');
-		$httpRequest->expects($this->once())->method('setUrl')->with($url);
-		$httpRequest->expects($this->never())->method('addPostParameter');
+		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
 		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
-		$tellmaticClient = $this->objectManager->get('Sto\\Tellmatic\\Tellmatic\TellmaticClient');
-		$tellmaticClient->setHttpRequest($httpRequest);
+		/** @var SubscribeRequest $subscribeRequest */
+		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
 
-		/** @var \Sto\Tellmatic\Tellmatic\TellmaticResponse $tellmaticResponse */
-		$tellmaticResponse = $tellmaticClient->sendSubscribeRequest($url, array());
+		$this->tellmaticClient->setHttpRequest($httpRequest);
+		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+	}
 
-		if ($success) {
-			$this->assertTrue($tellmaticResponse->getSuccess());
-		} else {
-			$this->assertFalse($tellmaticResponse->getSuccess());
-			$this->assertEquals($expectedFailureCode, $tellmaticResponse->getFailureCode());
-		}
+	/**
+	 * @test
+	 * @expectedException \RuntimeException
+	 */
+	public function sendSubscribeRequestThrowsExceptionOnInvalidResponse() {
+
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
+		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue('totally invalid response data'));
+
+		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
+
+		/** @var SubscribeRequest $subscribeRequest */
+		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
+
+		$this->tellmaticClient->setHttpRequest($httpRequest);
+		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 	}
 }

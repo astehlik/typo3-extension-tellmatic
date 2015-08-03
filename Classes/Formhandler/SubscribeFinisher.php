@@ -11,8 +11,17 @@ namespace Sto\Tellmatic\Formhandler;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
+use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
+use Sto\Tellmatic\Tellmatic\TellmaticClient;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 
-class SubscribeValidator extends \Tx_Formhandler_Finisher_DB {
+/**
+ * This finisher executes a Tellmatic subscribe request.
+ * It uses the same field configuration as the DB finisher.
+ */
+class SubscribeFinisher extends \Tx_Formhandler_Finisher_DB {
 
 	/**
 	 * Initialize the class variables
@@ -52,19 +61,21 @@ class SubscribeValidator extends \Tx_Formhandler_Finisher_DB {
 				$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $response->getFailureReason());
 			}
 		} catch (\Exception $exception) {
-			$errors['tellmatic'] = \Sto\Tellmatic\Tellmatic\TellmaticResponse::FAILURE_CODE_UNKNOWN;
+			$errors['tellmatic'] = TellmaticResponse::FAILURE_CODE_UNKNOWN;
 			$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
-			return FALSE;
+			$success = FALSE;
 		}
 
 		return $success;
 	}
 
 	/**
-	 * @return \Sto\Tellmatic\Tellmatic\TellmaticResponse
+	 * Builds and executes the subscribe request.
+	 *
+	 * @return TellmaticResponse
 	 * @throws \RuntimeException
 	 */
-	public function sendSubscribeRequest() {
+	protected function sendSubscribeRequest() {
 
 		$queryFields = $this->parseFields();
 
@@ -78,15 +89,18 @@ class SubscribeValidator extends \Tx_Formhandler_Finisher_DB {
 		/**
 		 * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
 		 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
+		 * @var \Sto\Tellmatic\Tellmatic\Request\SubscribeRequest $subscribeRequest
 		 */
-		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
-		$tellmaticClient = $objectManager->get('Sto\\Tellmatic\\Tellmatic\\TellmaticClient');
+		$objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+		$tellmaticClient = $objectManager->get(TellmaticClient::class);
+		$subscribeRequest = $objectManager->get(SubscribeRequest::class, $email);
+		$subscribeRequest->setAdditionalFields($queryFields);
 
 		if (isset($this->settings['overrideSubscribeUrl'])) {
 			$overrideSubscribeUrl = $this->utilityFuncs->getSingle($this->settings, 'overrideSubscribeUrl');
 			$tellmaticClient->setCustomUrl($overrideSubscribeUrl);
 		}
 
-		return $tellmaticClient->sendSubscribeRequest($email, $queryFields);
+		return $tellmaticClient->sendSubscribeRequest($subscribeRequest);
 	}
 }

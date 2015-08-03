@@ -1,21 +1,25 @@
 
-	# Page that contains the formhandler subscription plugin for handling ajax requests
-tx_formhandler_subscription_ajax_subscribe = PAGE
-tx_formhandler_subscription_ajax_subscribe {
-	typeNum = 254447653
-	config.disableAllHeaderCode = 1
-	10 < plugin.tx_formhandler_pi1
-	10.usePredef = formhandler_subscription_request_subscription_ajax.
-	10.controller = Tx_FormhandlerSubscription_Controller_AjaxSubmitController
-}
-
 plugin.Tx_Formhandler.settings.predef {
-
 
 	tellmatic_request_subscription < .formhandler_subscription_request_subscription
 	tellmatic_request_subscription {
 
+		debug = 1
+
 		name = Tellmatic - Request subscription
+
+		validators.20.class = Sto\Tellmatic\Formhandler\SubscribeRequest
+		validators.20.config {
+
+			validateOnly = 1
+
+			fields {
+				email = email
+				f0.mapping = last_name
+				f1.mapping = first_name
+				f2.mapping = gender
+			}
+		}
 
 		finishers {
 
@@ -23,38 +27,48 @@ plugin.Tx_Formhandler.settings.predef {
 			1.class = Sto\Tellmatic\Formhandler\SubscriptionStateSwitch
 			1.config {
 
-				email.mapping = email
+				// For new subscribers we create an auth code that will trigger a tellmatic subscription on validation.
+				newSubscriber < plugin.Tx_Formhandler.settings.predef.formhandler_subscription_request_subscription.finishers.1.config.finishersNewSubscriber
 
-				// new subscribers will be handled by tellmatic subscription
-				newSubscriber {
-
-					10.class = Sto\Tellmatic\Formhandler\Subscriber
-					10.config {
-						fields {
-							f0.mapping = gender
-							f1.mapping = last_name
-							f2.mapping = first_name
-							email.mapping = email
-						}
-					}
+				// Store the record in the Tellmatic database.
+				newSubscriber.10 >
+				newSubscriber.10 < plugin.Tx_Formhandler.settings.predef.tellmatic_request_subscription.validators.20
+				newSubscriber.10.config {
+					addressState = waiting
+					doNotSendEmails = 1
 				}
 
-				// unconfirmed subscribers will be handled by tellmatic subscription
-				existingUnconfirmedSubscriber < .finishersNewSubscriber
+				// Reconfigure auth code generation.
+				newSubscriber.20.config >
+				newSubscriber.20.config {
+					independentMode = 1
+					identifier = TEXT
+					identifier.data = GP:tx_formhandler_subscription|email
+					context = tellmatic_subscription
+				}
 
-				// existing & confirmed subscribers will get an auth code mail
+				// Unconfirmed subscribers will be handled as new subscribers.
+				existingUnconfirmedSubscriber < .newSubscriber
+
+				// Existing & confirmed subscribers will get an auth code mail.
 				existingConfirmedSubscriber < plugin.Tx_Formhandler.settings.predef.formhandler_subscription_request_subscription.finishers.1.config.finishersExistingConfirmedSubscriber
-				existingConfirmedSubscriber {
 
-					// reconfigure auth code generation
-					20.config {
-						independentMode = 1
-						identifier = TEXT
-						identifier.data = GP:tx_formhandler_subscription|email
-						context = tellmatic_subscription
-					}
-				}
+				// Reconfigure auth code generation.
+				existingConfirmedSubscriber.20.config >
+				existingConfirmedSubscriber.20.config < .newSubscriber.20.config
 			}
+		}
+	}
+
+	tellmatic_confirm_subscription < .formhandler_subscription_confirm_subscription
+	tellmatic_confirm_subscription {
+
+		name = Tellmatic - Confirm subscription
+
+		// We need to tell the auth code validator that we work in independent mode.
+		preProcessors.10.config {
+			independentMode = 1
+			context = tellmatic_subscription
 		}
 	}
 

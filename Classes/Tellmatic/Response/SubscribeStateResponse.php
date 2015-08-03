@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic;
+namespace Sto\Tellmatic\Tellmatic\Response;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,13 +12,30 @@ namespace Sto\Tellmatic\Tellmatic;
  *                                                                        */
 
 /**
- * A tellmatic response that contains the subscribe state of an address
+ * A tellmatic response that contains the subscribe state of an address.
  */
 class SubscribeStateResponse extends TellmaticResponse {
 
+	/**
+	 * The subscriber does not exist.
+	 *
+	 * @const
+	 */
 	const SUBSCRIBE_STATE_NOT_SUBSCRIBED = 'not_subscribed';
-	const SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED = 'subscribed_unconfirmed';
+
+	/**
+	 * The subscriber exists but is not confirmed.
+	 *
+	 * @const
+	 */
 	const SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED = 'subscribed_confirmed';
+
+	/**
+	 * The subscriber exists but has not yet confirmed his subscription.
+	 *
+	 * @const
+	 */
+	const SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED = 'subscribed_unconfirmed';
 
 	/**
 	 * The current subscribe state
@@ -38,6 +55,11 @@ class SubscribeStateResponse extends TellmaticResponse {
 		self::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED,
 	);
 
+	/**
+	 * Returns the current subscribe state.
+	 *
+	 * @return string
+	 */
 	public function getSubscribeState() {
 		return $this->subscribeState;
 	}
@@ -52,7 +74,7 @@ class SubscribeStateResponse extends TellmaticResponse {
 	 */
 	public function processAdditionalResponseData($responseData) {
 
-		if (!isset($responseData['subscribe_state']) || empty($responseData['subscribe_state'])) {
+		if (empty($responseData['subscribe_state'])) {
 			throw new \RuntimeException('Tellmatic did not provide a subscribe state.');
 		}
 
