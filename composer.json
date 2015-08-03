@@ -2,12 +2,27 @@
 	"name": "de-swebhosting-typo3-extension/tellmatic",
 	"description": "Provides methods to communicate with a tellmatic server.",
 	"type": "typo3-cms-extension",
-	"replace": {
-		"tellmatic": "self.version"
-	},
+	"license": "GPL-3.0+",
+	"authors": [
+		{
+			"name": "Alexander Stehlik",
+			"email": "alexander.stehlik.deleteme@gmail.com"
+		}
+	],
 	"autoload": {
 		"psr-4": {
 			"Sto\\Tellmatic\\": "Classes/"
 		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Sto\\Tellmatic\\Tests\\": "Tests/"
+		}
+	},
+	"require": {
+		"php" : ">=5.5.0"
+	},
+	"replace": {
+		"tellmatic": "self.version"
 	}
 }
