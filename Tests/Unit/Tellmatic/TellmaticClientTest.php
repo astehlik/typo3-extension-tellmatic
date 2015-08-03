@@ -76,7 +76,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 */
 	public function sendSubscribeRequestReturnsTrueOnSuccess() {
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'));
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
 		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($this->responseDataValid));
 
@@ -101,7 +101,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 */
 	public function sendSubscribeRequestReturnsValidFailureCode($responseData, $expectedFailureCode) {
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'));
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
 		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
 
@@ -152,7 +152,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 */
 	public function sendSubscribeRequestThrowsExceptionOnErrorResponseCode() {
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody', 'getReasonPhrase', 'getEffectiveUrl'));
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody', 'getReasonPhrase', 'getEffectiveUrl'), array(), '', FALSE);
 		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_NOT_FOUND));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
@@ -172,7 +172,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 */
 	public function sendSubscribeRequestThrowsExceptionOnInvalidResponse() {
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'));
+		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
 		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue('totally invalid response data'));
 
