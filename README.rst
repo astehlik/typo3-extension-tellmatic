@@ -7,4 +7,4 @@ tellmatic TYPO3 Extension
 
 This is a TYPO3 Extension for communication with a Tellmatic server.
 
-See also: <http://www.tellmatic.org/>`_
+See also: http://www.tellmatic.org/
