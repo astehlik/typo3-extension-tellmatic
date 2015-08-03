@@ -1,0 +1,13 @@
+{
+	"name": "de-swebhosting-typo3-extension/tellmatic",
+	"description": "Provides methods to communicate with a tellmatic server.",
+	"type": "typo3-cms-extension",
+	"replace": {
+		"tellmatic": "self.version"
+	},
+	"autoload": {
+		"psr-4": {
+			"Sto\\Tellmatic\\": "Classes/"
+		}
+	}
+}
