@@ -19,18 +19,29 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * This finisher executes a Tellmatic subscribe request.
  * It uses the same field configuration as the DB finisher.
  */
-class SubscribeFinisher extends \Tx_Formhandler_AbstractFinisher {
+class SubscribeValidator extends \Tx_Formhandler_AbstractValidator {
 
 	/**
 	 * Validates the submitted values using given settings
 	 *
-	 * @return array
+	 * @param array $errors Reference to the errors array to store the errors occurred
+	 * @return boolean
 	 */
-	public function process() {
+	public function validate(&$errors) {
+
+		// if there are already errors we do not proceed
+		if (count($errors)) {
+			$this->utilityFuncs->debugMessage('Skipping tellmatic subscription since previous errors have been detected.');
+			return FALSE;
+		}
+
+		$success = FALSE;
+		$this->settings['validateOnly'] = 1;
 
 		try {
 			$response = $this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
 			if ($response->getSuccess()) {
+				$success = TRUE;
 			} else {
 				$errors['tellmatic'] = $response->getFailureCode();
 				$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $response->getFailureReason());
@@ -38,9 +49,10 @@ class SubscribeFinisher extends \Tx_Formhandler_AbstractFinisher {
 		} catch (\Exception $exception) {
 			$errors['tellmatic'] = TellmaticResponse::FAILURE_CODE_UNKNOWN;
 			$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
+			$success = FALSE;
 		}
 
-		return $this->gp;
+		return $success;
 	}
 
 	/**

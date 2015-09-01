@@ -13,7 +13,9 @@ namespace Sto\Tellmatic\Formhandler;
 
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Tellmatic\TellmaticClient;
+use Sto\Tellmatic\Utility\FormhandlerUtility;
 use Tx_Formhandler_AbstractFinisher as FormhandlerAbstractFinisher;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 /**
@@ -55,17 +57,15 @@ class SubscriptionStateSwitch extends FormhandlerAbstractFinisher {
 	 */
 	public function process() {
 
-		if (!isset($this->settings['email'])) {
-			throw new \RuntimeException('Required setting email is missing.');
+		$queryFields = $this->getFormhandlerUtility()->parseFields($this->gp, $this->settings);
+
+		if (empty($queryFields['email'])) {
+			throw new \RuntimeException('Required field email is empty.');
 		}
 
-		$email = $this->settings['email'];
+		$email = $queryFields['email'];
 
-		if (isset($this->settings['email.'])) {
-			$email = $this->utilityFuncs->getSingle($this->settings['email'], $this->settings['email.']);
-		}
-
-		if (!\TYPO3\CMS\Core\Utility\GeneralUtility::validEmail($email)) {
+		if (!GeneralUtility::validEmail($email)) {
 			throw new \RuntimeException('An invalid email was submitted. Please configure a validator to prevent this.');
 		}
 
@@ -73,7 +73,7 @@ class SubscriptionStateSwitch extends FormhandlerAbstractFinisher {
 		 * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
 		 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
 		 */
-		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(ObjectManager::class);
+		$objectManager = GeneralUtility::makeInstance(ObjectManager::class);
 		$tellmaticClient = $objectManager->get(TellmaticClient::class);
 		$tellmaticResponse = $tellmaticClient->getSubscribeState($email);
 		$result = '';
@@ -112,6 +112,15 @@ class SubscriptionStateSwitch extends FormhandlerAbstractFinisher {
 		$conf['formValuesPrefix'] = $this->settings['formValuesPrefix'];
 		$conf['templateSuffix'] = $this->settings['templateSuffix'];
 		return $conf;
+	}
+
+	/**
+	 * @return FormhandlerUtility
+	 */
+	protected function getFormhandlerUtility() {
+		$formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
+		$formahandlerUtility->initialize($this);
+		return $formahandlerUtility;
 	}
 
 	/**

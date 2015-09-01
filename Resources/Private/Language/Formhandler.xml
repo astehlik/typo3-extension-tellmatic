@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="confirm_removal"><![CDATA[I would like to unsubscribe my e-mail address <b>###value_email###</b> from the newsletter.]]></label>
+			<label index="error_tellmatic_invalid_email">The provided e-mail address seems to have an invalid format.</label>
+			<label index="error_tellmatic_invalid_form_data">The submitted form data is invalid.</label>
+			<label index="error_tellmatic_error_address_is_unsubscribed">The address is not subscribed to our newsletter any more.</label>
+			<label index="error_tellmatic_error_address_is_unknown">The address is not subscribed to our newsletter any more.</label>
+			<label index="error_tellmatic_error_address_is_invalid">The submitted email address is invalid.</label>
+			<label index="error_tellmatic_unknown">An unknown error occured while validating your subscription request. Please try again later or drop us a note.</label>
+			<label index="global_error_message">An error occured while processing your request.</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="confirm_removal"><![CDATA[Hiermit möchte ich meine E-Mail Adresse <b>###value_email###</b> vom Newsletter abmelden.]]></label>
+			<label index="error_tellmatic_invalid_email">Die angegebene E-Mail-Adresse hat ein ungültiges Format.</label>
+			<label index="error_tellmatic_invalid_form_data">Die übermittelten Formulardaten sind ungültig.</label>
+			<label index="error_tellmatic_error_address_is_unsubscribed">Die Adresse ist nicht mehr bei unserem Newsletter angemeldet.</label>
+			<label index="error_tellmatic_error_address_is_unknown">Die Adresse ist nicht mehr bei unserem Newsletter angemeldet.</label>
+			<label index="error_tellmatic_error_address_is_invalid">Die E-Mail-Adresse ist ungültig.</label>
+			<label index="error_tellmatic_unknown">Während der Prüfung ihrer Anmeldeanfrage ist ein unbekannter Fehler aufgetreten. Bitte versuchen Sie es zu einem späteren Zeitpunkt erneut oder schicken Sie uns eine E-Mail.</label>
+			<label index="global_error_message">Während der Verarbeitung Ihrer Anfrage ist ein Fehler aufgetreten.</label>
+		</languageKey>
+	</data>
+</T3locallang>
