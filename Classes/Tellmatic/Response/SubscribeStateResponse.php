@@ -38,6 +38,11 @@ class SubscribeStateResponse extends TellmaticResponse {
 	const SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED = 'subscribed_unconfirmed';
 
 	/**
+	 * @var array
+	 */
+	protected $addressData = array();
+
+	/**
 	 * The current subscribe state
 	 *
 	 * @var string
@@ -54,6 +59,13 @@ class SubscribeStateResponse extends TellmaticResponse {
 		self::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED,
 		self::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED,
 	);
+
+	/**
+	 * @return array
+	 */
+	public function getAddressData() {
+		return $this->addressData;
+	}
 
 	/**
 	 * Returns the current subscribe state.
@@ -82,6 +94,10 @@ class SubscribeStateResponse extends TellmaticResponse {
 
 		if (!in_array($subscribeState, $this->validSubscribeStates)) {
 			throw new \RuntimeException('Tellmatic answered with an invalid subscribe state: ' . $subscribeState);
+		}
+
+		if (!empty($responseData['address_data'])) {
+			$this->addressData = $responseData['address_data'];
 		}
 
 		$this->subscribeState = $subscribeState;

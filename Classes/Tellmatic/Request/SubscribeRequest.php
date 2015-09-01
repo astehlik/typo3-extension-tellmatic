@@ -45,11 +45,31 @@ class SubscribeRequest {
 	);
 
 	/**
+	 * @var bool
+	 */
+	protected $doNotSendEmails = FALSE;
+
+	/**
 	 * The email address that should be subscribed.
 	 *
 	 * @var string
 	 */
 	protected $email;
+
+	/**
+	 * @var string
+	 */
+	protected $overrideAddressStatus = NULL;
+
+	/**
+	 * @var bool|null
+	 */
+	protected $overrideDoubleOptInSetting = NULL;
+
+	/**
+	 * @var bool
+	 */
+	protected $validateOnly = FALSE;
 
 	/**
 	 * Initializes a new SubscribeRequest for the given email address.
@@ -59,7 +79,7 @@ class SubscribeRequest {
 	public function __construct($email) {
 
 		if (empty($email) || !GeneralUtility::validEmail($email)) {
-			throw new \RuntimeException('The provided email address is invalid');
+			throw new \RuntimeException('The provided email address is invalid: ' . $email);
 		}
 
 		$this->email = $email;
@@ -77,6 +97,50 @@ class SubscribeRequest {
 		foreach ($this->additionalFields as $name => $value) {
 			$httpRequest->addPostParameter($name, $value);
 		}
+
+		if (isset($this->overrideAddressStatus)) {
+			$httpRequest->addPostParameter('overrideAddressStatus', $this->overrideAddressStatus);
+		}
+
+		if ($this->validateOnly) {
+			$httpRequest->addPostParameter('validateOnly', TRUE);
+		}
+
+		if ($this->doNotSendEmails) {
+			$httpRequest->addPostParameter('doNotSendEmails', TRUE);
+		}
+
+		if (isset($this->overrideDoubleOptInSetting)) {
+			$httpRequest->addPostParameter('overrideDoubleOptInSetting', $this->overrideDoubleOptInSetting);
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getDoNotSendEmails() {
+		return $this->doNotSendEmails;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getOverrideAddressStatus() {
+		return $this->overrideAddressStatus;
+	}
+
+	/**
+	 * @return bool|null
+	 */
+	public function getOverrideDoubleOptInSetting() {
+		return $this->overrideDoubleOptInSetting;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getValidateOnly() {
+		return $this->validateOnly;
 	}
 
 	/**
@@ -93,5 +157,33 @@ class SubscribeRequest {
 		}
 
 		$this->additionalFields = $additionalFields;
+	}
+
+	/**
+	 * @param bool $doNotSendEmails
+	 */
+	public function setDoNotSendEmails($doNotSendEmails) {
+		$this->doNotSendEmails = $doNotSendEmails;
+	}
+
+	/**
+	 * @param string $overrideAddressStatus
+	 */
+	public function setOverrideAddressStatus($overrideAddressStatus) {
+		$this->overrideAddressStatus = $overrideAddressStatus;
+	}
+
+	/**
+	 * @param bool|null $overrideDoubleOptInSetting
+	 */
+	public function setOverrideDoubleOptInSetting($overrideDoubleOptInSetting) {
+		$this->overrideDoubleOptInSetting = $overrideDoubleOptInSetting;
+	}
+
+	/**
+	 * @param bool $validateOnly
+	 */
+	public function setValidateOnly($validateOnly) {
+		$this->validateOnly = $validateOnly;
 	}
 }

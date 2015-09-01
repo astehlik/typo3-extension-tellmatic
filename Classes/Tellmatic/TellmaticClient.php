@@ -12,6 +12,7 @@ namespace Sto\Tellmatic\Tellmatic;
  *                                                                        */
 
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
+use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
 use TYPO3\CMS\Core\Http\HttpRequest;
@@ -35,6 +36,7 @@ class TellmaticClient {
 	 */
 	protected $defaultUrls = array(
 		'subscribeRequest' => 'api_subscribe.php',
+		'unsubscribeRequest' => 'api_unsubscribe.php',
 		'getSubscribeState' => 'api_subscribe_state.php',
 	);
 
@@ -97,12 +99,26 @@ class TellmaticClient {
 	 * @param SubscribeRequest $subscribeRequest
 	 * @return TellmaticResponse
 	 */
-	public function sendSubscribeRequest($subscribeRequest) {
+	public function sendSubscribeRequest(SubscribeRequest $subscribeRequest) {
 
 		$this->initializeHttpRequest();
 		$this->httpRequest->setUrl($this->getUrl('subscribeRequest'));
 
 		$subscribeRequest->initializeHttpRequest($this->httpRequest);
+
+		return $this->doRequestAndGenerateResponse();
+	}
+
+	/**
+	 * @param UnsubscribeRequest $unsubscribeRequest
+	 * @return TellmaticResponse
+	 */
+	public function sendUnsubscribeRequest(UnsubscribeRequest $unsubscribeRequest) {
+
+		$this->initializeHttpRequest();
+		$this->httpRequest->setUrl($this->getUrl('unsubscribeRequest'));
+
+		$unsubscribeRequest->initializeHttpRequest($this->httpRequest);
 
 		return $this->doRequestAndGenerateResponse();
 	}
@@ -181,7 +197,7 @@ class TellmaticClient {
 			$baseUrl = $this->extensionConfiguration->getTellmaticUrl();
 
 			if (empty($baseUrl) || parse_url($baseUrl) === FALSE) {
-				throw new \RuntimeException('No valid base URL was configured.');
+				throw new \RuntimeException('No valid base URL was configured: ' . $baseUrl);
 			}
 
 			$url = $baseUrl . $this->defaultUrls[$requestType];
