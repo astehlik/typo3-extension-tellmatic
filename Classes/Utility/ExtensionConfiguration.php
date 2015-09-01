@@ -26,6 +26,7 @@ class ExtensionConfiguration implements SingletonInterface {
 	 */
 	protected $defaultSettings = array(
 		'tellmaticUrl' => NULL,
+		'tellmaticApiKey' => NULL
 	);
 
 	/**
@@ -46,6 +47,18 @@ class ExtensionConfiguration implements SingletonInterface {
 			$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic']);
 			ArrayUtility::mergeRecursiveWithOverrule($this->settings, $settings);
 		}
+	}
+
+	/**
+	 * Returns the Tellmatic API key.
+	 *
+	 * @return array
+	 */
+	public function getTellmaticApiKey() {
+		if (empty($this->settings['tellmaticApiKey'])) {
+			throw new \RuntimeException('The Tellmatic API key is not configured in the Extension configuration.');
+		}
+		return $this->settings['tellmaticApiKey'];
 	}
 
 	/**

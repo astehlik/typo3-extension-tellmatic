@@ -11,11 +11,12 @@ namespace Sto\Tellmatic\Tellmatic;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
-use TYPO3\CMS\Core\Http\HttpRequest;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Client for executing API request on a Tellmatic server.
@@ -47,7 +48,7 @@ class TellmaticClient {
 	protected $extensionConfiguration;
 
 	/**
-	 * @var \TYPO3\CMS\Core\Http\HttpRequest
+	 * @var AccessibleHttpRequest
 	 */
 	protected $httpRequest;
 
@@ -83,7 +84,7 @@ class TellmaticClient {
 		$this->initializeHttpRequest();
 		$this->httpRequest->setUrl($this->getUrl('getSubscribeState'));
 
-		if (!\TYPO3\CMS\Core\Utility\GeneralUtility::validEmail($email)) {
+		if (!GeneralUtility::validEmail($email)) {
 			throw new \RuntimeException('The provided email address is invalid');
 		}
 
@@ -144,6 +145,21 @@ class TellmaticClient {
 	}
 
 	/**
+	 * Adds a hmac POST parameter based on the serialized POST parameters array.
+	 */
+	protected function addApiKeyToPostParameters() {
+
+		$postParameters = $this->httpRequest->getPostParameters();
+
+		$encryptionKeyBackup = $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'];
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = $this->extensionConfiguration->getTellmaticApiKey();
+
+		$this->httpRequest->addPostParameter('apiKey', GeneralUtility::hmac(serialize($postParameters), 'TellmaticAPI'));
+
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = $encryptionKeyBackup;
+	}
+
+	/**
 	 * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
 	 */
 	protected function createResponse() {
@@ -155,6 +171,8 @@ class TellmaticClient {
 	 * @throws \RuntimeException
 	 */
 	protected function doRequestAndGenerateResponse() {
+
+		$this->addApiKeyToPostParameters();
 
 		$tellmaticResponse = $this->createResponse();
 
@@ -215,7 +233,7 @@ class TellmaticClient {
 	protected function initializeHttpRequest() {
 
 		if (!isset($this->httpRequest)) {
-			$this->httpRequest = $this->objectManager->get(HttpRequest::class);
+			$this->httpRequest = $this->objectManager->get(AccessibleHttpRequest::class);
 		}
 
 		$this->httpRequest->setConfiguration($this->httpRequestConfiguration);
