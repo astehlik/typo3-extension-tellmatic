@@ -34,6 +34,7 @@ class TellmaticCommandController extends CommandController {
 	 * @param bool $doNotSendEmails
 	 * @param bool $validateOnly
 	 * @param string $overrideAddressStatus
+	 * @param string $memo
 	 * @param string $f0
 	 * @param string $f1
 	 * @param string $f2
@@ -50,6 +51,7 @@ class TellmaticCommandController extends CommandController {
 		$doNotSendEmails = FALSE,
 		$validateOnly = FALSE,
 		$overrideAddressStatus = NULL,
+		$memo = '',
 		/** @noinspection PhpUnusedParameterInspection */
 		$f0 = NULL,
 		/** @noinspection PhpUnusedParameterInspection */
@@ -96,6 +98,12 @@ class TellmaticCommandController extends CommandController {
 			$subscribeRequest->setAdditionalFields($additionalFields);
 		}
 
+		if (!empty($memo)) {
+			$subscribeRequest->getMemo()->addLineToMemo($memo);
+		}
+
+		$subscribeRequest->getMemo()->addLineToMemo('subscribeCommand of TellmaticCommandController');
+
 		$result = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 		if ($result->getSuccess()) {
 			$this->outputLine('Subscription was successful.');
@@ -118,14 +126,21 @@ class TellmaticCommandController extends CommandController {
 	 *
 	 * @param string $email
 	 * @param bool $doNotSendEmails
+	 * @param string $memo
 	 */
-	public function unsubscribeCommand($email, $doNotSendEmails = FALSE) {
+	public function unsubscribeCommand($email, $doNotSendEmails = FALSE, $memo = '') {
 
 		$unsubscribeRequest = GeneralUtility::makeInstance(UnsubscribeRequest::class, $email);
 
 		if ($doNotSendEmails) {
 			$unsubscribeRequest->setDoNotSendEmails(TRUE);
 		}
+
+		if (!empty($memo)) {
+			$unsubscribeRequest->getMemo()->addLineToMemo($memo);
+		}
+
+		$unsubscribeRequest->getMemo()->addLineToMemo('unsubscribeCommand of TellmaticCommandController');
 
 		$result = $this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 		if ($result->getSuccess()) {
