@@ -79,6 +79,11 @@ class UnsubscribeValidator extends \Tx_Formhandler_AbstractValidator {
 			$subscribeRequest->getMemo()->addLineToMemo($memo);
 		}
 
+		$doNotSendEmails = $this->utilityFuncs->getSingle($this->settings, 'doNotSendEmails');
+		if ($doNotSendEmails) {
+			$subscribeRequest->setDoNotSendEmails(TRUE);
+		}
+
 		return $tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 
 	}
