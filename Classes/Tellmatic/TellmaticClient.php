@@ -12,10 +12,14 @@ namespace Sto\Tellmatic\Tellmatic;
  *                                                                        */
 
 use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
+use Sto\Tellmatic\Tellmatic\Request\AddressCountRequest;
+use Sto\Tellmatic\Tellmatic\Request\AddressSearchRequest;
 use Sto\Tellmatic\Tellmatic\Request\SetCodeRequest;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Request\TellmaticRequestInterface;
 use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
+use Sto\Tellmatic\Tellmatic\Response\AddressCountResponse;
+use Sto\Tellmatic\Tellmatic\Response\AddressSearchResponse;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -41,6 +45,9 @@ class TellmaticClient {
 		'subscribe' => 'api_subscribe.php',
 		'unsubscribe' => 'api_unsubscribe.php',
 		'getSubscribeState' => 'api_subscribe_state.php',
+		'setCode' => 'api_set_code.php',
+		'addressCount' => 'api_address_count.php',
+		'addressSearch' => 'api_address_search.php',
 	);
 
 	/**
@@ -93,6 +100,33 @@ class TellmaticClient {
 		$this->responseClass = SubscribeStateResponse::class;
 		$this->httpRequest->addPostParameter('email', $email);
 
+		return $this->doRequestAndGenerateResponse();
+	}
+
+	/**
+	 * @param AddressCountRequest $addressCountRequest
+	 * @return AddressCountResponse
+	 */
+	public function sendAddressCountRequest(AddressCountRequest $addressCountRequest) {
+		$this->initializeRequest('addressCount', $addressCountRequest, AddressCountResponse::class);
+		return $this->doRequestAndGenerateResponse();
+	}
+
+	/**
+	 * @param AddressSearchRequest $addressSearchRequest
+	 * @return AddressSearchResponse
+	 */
+	public function sendAddressSearchRequest(AddressSearchRequest $addressSearchRequest) {
+		$this->initializeRequest('addressSearch', $addressSearchRequest, AddressSearchResponse::class);
+		return $this->doRequestAndGenerateResponse();
+	}
+
+	/**
+	 * @param SetCodeRequest $setCodeRequest
+	 * @return TellmaticResponse
+	 */
+	public function sendSetCodeRequest(SetCodeRequest $setCodeRequest) {
+		$this->initializeRequest('setCode', $setCodeRequest);
 		return $this->doRequestAndGenerateResponse();
 	}
 

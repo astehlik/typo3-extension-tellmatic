@@ -11,6 +11,9 @@ namespace Sto\Tellmatic\Command;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Request\AddressCountRequest;
+use Sto\Tellmatic\Tellmatic\Request\AddressSearchRequest;
+use Sto\Tellmatic\Tellmatic\Request\SetCodeRequest;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -26,6 +29,60 @@ class TellmaticCommandController extends CommandController {
 	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
 	 */
 	protected $tellmaticClient;
+
+	/**
+	 * Counts the addresses in the DB.
+	 *
+	 * @param array $search
+	 * @param int $groupId
+	 */
+	public function addressCountCommand(array $search = array(), $groupId = 0) {
+		$addressCountRequest = GeneralUtility::makeInstance(AddressCountRequest::class);
+		$addressCountRequest->setSearch($search);
+		$addressCountRequest->setGroupId($groupId);
+		$result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
+		if ($result->getSuccess()) {
+			$this->outputLine('Address count is: ' . $result->getAddressCount());
+		} else {
+			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
+		}
+	}
+
+	/**
+	 * Counts the addresses in the DB.
+	 *
+	 * @param array $search
+	 * @param int $groupId
+	 */
+	public function addressSearchCommand(array $search = array(), $groupId = 0) {
+		$addressSearchRequest = GeneralUtility::makeInstance(AddressSearchRequest::class);
+		$addressSearchRequest->setSearch($search);
+		$addressSearchRequest->setGroupId($groupId);
+		$result = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
+		if ($result->getSuccess()) {
+			foreach ($result->getAddresses() as $address) {
+				$this->outputLine('Found address ' . $address['email'] . ' with ID ' . $address['id']);
+			}
+		} else {
+			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
+		}
+	}
+
+	/**
+	 * Sets the code_external.
+	 *
+	 * @param int $addressId
+	 * @param string $code
+	 */
+	public function setCodeCommand($addressId, $code) {
+		$setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $code);
+		$result = $this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
+		if ($result->getSuccess()) {
+			$this->outputLine('The code was set successfully.');
+		} else {
+			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
+		}
+	}
 
 	/**
 	 * Sends a subscribe request.
