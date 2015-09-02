@@ -220,6 +220,6 @@ class SubscribeRequest {
 	 * @param bool $validateOnly
 	 */
 	public function setValidateOnly($validateOnly) {
-		$this->validateOnly = $validateOnly;
+		$this->validateOnly = (bool)$validateOnly;
 	}
 }
