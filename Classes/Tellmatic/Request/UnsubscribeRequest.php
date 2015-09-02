@@ -32,6 +32,11 @@ class UnsubscribeRequest {
 	protected $email;
 
 	/**
+	 * @var Memo
+	 */
+	protected $memo = '';
+
+	/**
 	 * Initializes a new SubscribeRequest for the given email address.
 	 *
 	 * @param string $email The email address that should be subscribed.
@@ -43,6 +48,7 @@ class UnsubscribeRequest {
 		}
 
 		$this->email = $email;
+		$this->memo = GeneralUtility::makeInstance(Memo::class);
 	}
 
 	/**
@@ -51,6 +57,13 @@ class UnsubscribeRequest {
 	 * @param HttpRequest $httpRequest
 	 */
 	public function initializeHttpRequest(HttpRequest $httpRequest) {
+
+		$this->memo->appendDefaultMemo($this);
+
+		$memo = $this->memo->getMemo();
+		if (!empty($memo)) {
+			$httpRequest->addPostParameter('memo', $memo);
+		}
 
 		$httpRequest->addPostParameter('email', $this->email);
 
@@ -64,6 +77,13 @@ class UnsubscribeRequest {
 	 */
 	public function getDoNotSendEmails() {
 		return $this->doNotSendEmails;
+	}
+
+	/**
+	 * @return Memo
+	 */
+	public function getMemo() {
+		return $this->memo;
 	}
 
 	/**

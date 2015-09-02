@@ -73,6 +73,12 @@ class UnsubscribeValidator extends \Tx_Formhandler_AbstractValidator {
 		$objectManager = GeneralUtility::makeInstance(ObjectManager::class);
 		$tellmaticClient = $objectManager->get(TellmaticClient::class);
 		$unsubscribeRequest = $objectManager->get(UnsubscribeRequest::class, $email);
+
+		$memo = $this->utilityFuncs->getSingle($this->settings, 'memo');
+		if (!empty($memo)) {
+			$subscribeRequest->getMemo()->addLineToMemo($memo);
+		}
+
 		return $tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 
 	}

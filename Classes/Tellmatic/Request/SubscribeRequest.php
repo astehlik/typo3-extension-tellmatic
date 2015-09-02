@@ -72,6 +72,11 @@ class SubscribeRequest {
 	protected $validateOnly = FALSE;
 
 	/**
+	 * @var Memo
+	 */
+	protected $memo = '';
+
+	/**
 	 * Initializes a new SubscribeRequest for the given email address.
 	 *
 	 * @param string $email The email address that should be subscribed.
@@ -83,6 +88,7 @@ class SubscribeRequest {
 		}
 
 		$this->email = $email;
+		$this->memo = GeneralUtility::makeInstance(Memo::class);
 	}
 
 	/**
@@ -92,10 +98,17 @@ class SubscribeRequest {
 	 */
 	public function initializeHttpRequest(HttpRequest $httpRequest) {
 
+		$this->appendDefaultMemo();
+
 		$httpRequest->addPostParameter('email', $this->email);
 
 		foreach ($this->additionalFields as $name => $value) {
 			$httpRequest->addPostParameter($name, $value);
+		}
+
+		$memo = $this->memo->getMemo();
+		if (!empty($memo)) {
+			$httpRequest->addPostParameter('memo', $memo);
 		}
 
 		if (isset($this->overrideAddressStatus)) {
@@ -116,10 +129,33 @@ class SubscribeRequest {
 	}
 
 	/**
+	 * Adds some information to the memo that is stored in the Tellmatic address record.
+	 */
+	protected function appendDefaultMemo() {
+
+		$this->memo->appendDefaultMemo($this);
+
+		if ($this->overrideAddressStatus) {
+			$this->memo->addLineToMemo('Address status overwritten: ' . $this->overrideAddressStatus);
+		}
+
+		if ($this->overrideDoubleOptInSetting) {
+			$this->memo->addLineToMemo('Double opt-in setting overwritten: ' . $this->overrideDoubleOptInSetting);
+		}
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function getDoNotSendEmails() {
 		return $this->doNotSendEmails;
+	}
+
+	/**
+	 * @return Memo
+	 */
+	public function getMemo() {
+		return $this->memo;
 	}
 
 	/**

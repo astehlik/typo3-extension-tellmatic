@@ -95,6 +95,11 @@ class FormhandlerUtility implements SingletonInterface {
 			$subscribeRequest->setOverrideAddressStatus($addressState);
 		}
 
+		$memo = $this->utilityFuncs->getSingle($settings, 'memo');
+		if (!empty($memo)) {
+			$subscribeRequest->getMemo()->addLineToMemo($memo);
+		}
+
 		$overrideSubscribeUrl = $this->utilityFuncs->getSingle($settings, 'overrideSubscribeUrl');
 		if (!empty($overrideSubscribeUrl)) {
 			$tellmaticClient->setCustomUrl($overrideSubscribeUrl);

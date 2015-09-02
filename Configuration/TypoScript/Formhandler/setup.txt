@@ -54,6 +54,7 @@ plugin.Tx_Formhandler.settings.predef {
 				newSubscriber.10.config {
 					doNotSendEmails = 1
 					addressState = waiting
+					memo = User filled out initial subscribe request.
 					fields < plugin.Tx_Formhandler.settings.predef.tellmatic_request_subscription.validators.20.config.fields
 				}
 
@@ -108,6 +109,7 @@ plugin.Tx_Formhandler.settings.predef {
 
 			30 < plugin.Tx_Formhandler.settings.predef.tellmatic_request_subscription.finishers.1.config.newSubscriber.10
 			30.config.addressState = confirmed
+			30.config.memo = User confirmed his subscription by submitting valid auth code.
 
 			40.class = Tx\FormhandlerSubscription\Finisher\InvalidateAuthCodeDB
 		}
@@ -176,6 +178,7 @@ plugin.Tx_Formhandler.settings.predef {
 			20 < plugin.Tx_Formhandler.settings.predef.tellmatic_request_subscription.finishers.1.config.newSubscriber.10
 			20.config {
 				addressState = confirmed
+				memo = User updated his subscription by using a valid auth code.
 			}
 		}
 
@@ -206,6 +209,7 @@ plugin.Tx_Formhandler.settings.predef {
 		validators.30.config {
 			email = TEXT
 			email.data = GP:tx_formhandler_subscription|email
+
 		}
 
 		finishers.10 >
