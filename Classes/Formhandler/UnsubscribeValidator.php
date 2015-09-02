@@ -84,6 +84,21 @@ class UnsubscribeValidator extends \Tx_Formhandler_AbstractValidator {
 			$subscribeRequest->setDoNotSendEmails(TRUE);
 		}
 
+		$newsletterId = (int)$this->utilityFuncs->getSingle($this->settings, 'newsletterId');
+		if (!empty($newsletterId)) {
+			$unsubscribeRequest->setNewsletterId($newsletterId);
+		}
+
+		$historyId = (int)$this->utilityFuncs->getSingle($this->settings, 'historyId');
+		if (!empty($historyId)) {
+			$unsubscribeRequest->setHistoryId($historyId);
+		}
+
+		$queueId = (int)$this->utilityFuncs->getSingle($this->settings, 'queueId');
+		if (!empty($queueId)) {
+			$unsubscribeRequest->setQueueId($queueId);
+		}
+
 		return $tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 
 	}

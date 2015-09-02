@@ -207,8 +207,18 @@ plugin.Tx_Formhandler.settings.predef {
 
 		validators.30.class = Sto\Tellmatic\Formhandler\UnsubscribeValidator
 		validators.30.config {
+
 			email = TEXT
 			email.data = GP:tx_formhandler_subscription|email
+
+			newsletterId = TEXT
+			newsletterId.data = GP:nl_id
+
+			historyId = TEXT
+			historyId.data = GP:h_id
+
+			queueId = TEXT
+			queueId.data = GP:q_id
 
 		}
 

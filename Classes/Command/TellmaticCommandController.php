@@ -184,8 +184,11 @@ class TellmaticCommandController extends CommandController {
 	 * @param string $email
 	 * @param bool $doNotSendEmails
 	 * @param string $memo
+	 * @param int $newsletterId
+	 * @param int $historyId
+	 * @param int $queueId
 	 */
-	public function unsubscribeCommand($email, $doNotSendEmails = FALSE, $memo = '') {
+	public function unsubscribeCommand($email, $doNotSendEmails = FALSE, $memo = '', $newsletterId = 0, $historyId = 0, $queueId = 0) {
 
 		$unsubscribeRequest = GeneralUtility::makeInstance(UnsubscribeRequest::class, $email);
 
@@ -195,6 +198,18 @@ class TellmaticCommandController extends CommandController {
 
 		if (!empty($memo)) {
 			$unsubscribeRequest->getMemo()->addLineToMemo($memo);
+		}
+
+		if (!empty($newsletterId)) {
+			$unsubscribeRequest->setNewsletterId($newsletterId);
+		}
+
+		if (!empty($historyId)) {
+			$unsubscribeRequest->setHistoryId($historyId);
+		}
+
+		if (!empty($queueId)) {
+			$unsubscribeRequest->setQueueId($queueId);
 		}
 
 		$unsubscribeRequest->getMemo()->addLineToMemo('unsubscribeCommand of TellmaticCommandController');
