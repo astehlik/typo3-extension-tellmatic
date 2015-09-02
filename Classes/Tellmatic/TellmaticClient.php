@@ -12,7 +12,9 @@ namespace Sto\Tellmatic\Tellmatic;
  *                                                                        */
 
 use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
+use Sto\Tellmatic\Tellmatic\Request\SetCodeRequest;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
+use Sto\Tellmatic\Tellmatic\Request\TellmaticRequestInterface;
 use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
@@ -36,8 +38,8 @@ class TellmaticClient {
 	 * @var array
 	 */
 	protected $defaultUrls = array(
-		'subscribeRequest' => 'api_subscribe.php',
-		'unsubscribeRequest' => 'api_unsubscribe.php',
+		'subscribe' => 'api_subscribe.php',
+		'unsubscribe' => 'api_unsubscribe.php',
 		'getSubscribeState' => 'api_subscribe_state.php',
 	);
 
@@ -101,12 +103,7 @@ class TellmaticClient {
 	 * @return TellmaticResponse
 	 */
 	public function sendSubscribeRequest(SubscribeRequest $subscribeRequest) {
-
-		$this->initializeHttpRequest();
-		$this->httpRequest->setUrl($this->getUrl('subscribeRequest'));
-
-		$subscribeRequest->initializeHttpRequest($this->httpRequest);
-
+		$this->initializeRequest('subscribe', $subscribeRequest);
 		return $this->doRequestAndGenerateResponse();
 	}
 
@@ -115,12 +112,7 @@ class TellmaticClient {
 	 * @return TellmaticResponse
 	 */
 	public function sendUnsubscribeRequest(UnsubscribeRequest $unsubscribeRequest) {
-
-		$this->initializeHttpRequest();
-		$this->httpRequest->setUrl($this->getUrl('unsubscribeRequest'));
-
-		$unsubscribeRequest->initializeHttpRequest($this->httpRequest);
-
+		$this->initializeRequest('unsubscribe', $unsubscribeRequest);
 		return $this->doRequestAndGenerateResponse();
 	}
 
@@ -231,11 +223,28 @@ class TellmaticClient {
 	 * initialized.
 	 */
 	protected function initializeHttpRequest() {
-
-		if (!isset($this->httpRequest)) {
-			$this->httpRequest = $this->objectManager->get(AccessibleHttpRequest::class);
-		}
-
+		$this->httpRequest = $this->objectManager->get(AccessibleHttpRequest::class);
 		$this->httpRequest->setConfiguration($this->httpRequestConfiguration);
+	}
+
+	/**
+	 * Initializes the HttpRequest, the URL and the response class.
+	 *
+	 * @param string $requestType
+	 * @param TellmaticRequestInterface $request
+	 * @param string $responseClass
+	 */
+	protected function initializeRequest($requestType, TellmaticRequestInterface $request, $responseClass = NULL) {
+
+		$this->initializeHttpRequest();
+
+		$this->httpRequest->setUrl($this->getUrl($requestType));
+		$request->initializeHttpRequest($this->httpRequest);
+
+		if (isset($responseClass)) {
+			$this->responseClass = $responseClass;
+		} else {
+			$this->responseClass = TellmaticResponse::class;
+		}
 	}
 }

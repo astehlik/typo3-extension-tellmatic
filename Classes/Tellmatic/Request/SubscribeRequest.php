@@ -11,13 +11,12 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\CMS\Core\Http\HttpRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Request for adding a new subscriber to Tellmatic.
  */
-class SubscribeRequest {
+class SubscribeRequest implements TellmaticRequestInterface {
 
 	/**
 	 * Optional array containing additional field data (f0 - f9).
@@ -57,6 +56,11 @@ class SubscribeRequest {
 	protected $email;
 
 	/**
+	 * @var Memo
+	 */
+	protected $memo = '';
+
+	/**
 	 * @var string
 	 */
 	protected $overrideAddressStatus = NULL;
@@ -70,11 +74,6 @@ class SubscribeRequest {
 	 * @var bool
 	 */
 	protected $validateOnly = FALSE;
-
-	/**
-	 * @var Memo
-	 */
-	protected $memo = '';
 
 	/**
 	 * Initializes a new SubscribeRequest for the given email address.
@@ -94,9 +93,9 @@ class SubscribeRequest {
 	/**
 	 * Initializes the given HTTP request with the required parameters.
 	 *
-	 * @param HttpRequest $httpRequest
+	 * @param AccessibleHttpRequest $httpRequest
 	 */
-	public function initializeHttpRequest(HttpRequest $httpRequest) {
+	public function initializeHttpRequest(AccessibleHttpRequest $httpRequest) {
 
 		$this->appendDefaultMemo();
 
@@ -125,22 +124,6 @@ class SubscribeRequest {
 
 		if (isset($this->overrideDoubleOptInSetting)) {
 			$httpRequest->addPostParameter('overrideDoubleOptInSetting', $this->overrideDoubleOptInSetting);
-		}
-	}
-
-	/**
-	 * Adds some information to the memo that is stored in the Tellmatic address record.
-	 */
-	protected function appendDefaultMemo() {
-
-		$this->memo->appendDefaultMemo($this);
-
-		if ($this->overrideAddressStatus) {
-			$this->memo->addLineToMemo('Address status overwritten: ' . $this->overrideAddressStatus);
-		}
-
-		if ($this->overrideDoubleOptInSetting) {
-			$this->memo->addLineToMemo('Double opt-in setting overwritten: ' . $this->overrideDoubleOptInSetting);
 		}
 	}
 
@@ -221,5 +204,21 @@ class SubscribeRequest {
 	 */
 	public function setValidateOnly($validateOnly) {
 		$this->validateOnly = (bool)$validateOnly;
+	}
+
+	/**
+	 * Adds some information to the memo that is stored in the Tellmatic address record.
+	 */
+	protected function appendDefaultMemo() {
+
+		$this->memo->appendDefaultMemo($this);
+
+		if ($this->overrideAddressStatus) {
+			$this->memo->addLineToMemo('Address status overwritten: ' . $this->overrideAddressStatus);
+		}
+
+		if ($this->overrideDoubleOptInSetting) {
+			$this->memo->addLineToMemo('Double opt-in setting overwritten: ' . $this->overrideDoubleOptInSetting);
+		}
 	}
 }

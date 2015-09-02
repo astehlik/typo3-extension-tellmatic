@@ -11,13 +11,12 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\CMS\Core\Http\HttpRequest;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Request for adding a new subscriber to Tellmatic.
  */
-class UnsubscribeRequest {
+class UnsubscribeRequest implements TellmaticRequestInterface {
 
 	/**
 	 * @var bool
@@ -54,9 +53,9 @@ class UnsubscribeRequest {
 	/**
 	 * Initializes the given HTTP request with the required parameters.
 	 *
-	 * @param HttpRequest $httpRequest
+	 * @param AccessibleHttpRequest $httpRequest
 	 */
-	public function initializeHttpRequest(HttpRequest $httpRequest) {
+	public function initializeHttpRequest(AccessibleHttpRequest $httpRequest) {
 
 		$this->memo->appendDefaultMemo($this);
 
