@@ -14,7 +14,7 @@
 		<f:render partial="Subscription/Errors" arguments="{_all}" />
 
 		<tm:form.validatedControlGroup for="email">
-			<label class="control-label" for="email">E-Mail</label>
+			<label class="control-label" for="email">E-Mail <span class="form-required-label" title="Pflichtfeld">*</span></label>
 			<tm:form.inlineHelpOrErrors />
 			<f:form.textfield class="form-control" id="email" type="text" name="email" />
 		</tm:form.validatedControlGroup>
