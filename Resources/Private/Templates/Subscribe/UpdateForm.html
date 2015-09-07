@@ -26,14 +26,7 @@
 
 	<f:form action="update" method="post" enctype="multipart/form-data">
 
-		<f:form.validationResults>
-			<f:if condition="{validationResults.hasErrors}">
-				<div class="alert alert-warning">
-					<strong>Fehler</strong><br /> Beim Verarbeiten Ihrer Daten ist leider ein Fehler
-					aufgetreten. ###error_tellmatic###
-				</div>
-			</f:if>
-		</f:form.validationResults>
+		<f:render partial="Subscription/Errors" arguments="{_all}" />
 
 		<tm:form.validatedControlGroup for="additionalData.f0">
 			<tm:form.inlineHelpOrErrors />
