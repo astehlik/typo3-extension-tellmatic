@@ -37,6 +37,11 @@ class SubscriptionHandler {
 	protected $authCodeRepository;
 
 	/**
+	 * @var ConfigurationManagerInterface
+	 */
+	protected $configurationManager;
+
+	/**
 	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
 	 * @inject
 	 */
@@ -67,6 +72,7 @@ class SubscriptionHandler {
 	 * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
 	 */
 	public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager) {
+		$this->configurationManager = $configurationManager;
 		$this->settings = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS);
 	}
 
@@ -190,6 +196,36 @@ class SubscriptionHandler {
 	 */
 	public function setView(TemplateView $view) {
 		$this->view = $view;
+	}
+
+	/**
+	 * Usees the tinyurls extension to generate
+	 *
+	 * @param string $action
+	 * @param string $authCode
+	 * @return string
+	 */
+	protected function generateTinyUrl($action, $authCode) {
+
+		if (empty($this->settings['authCodeUrlSpeaking'])) {
+			return NULL;
+		}
+
+		if (empty($this->settings['authCodeUrlTempate'][$action])) {
+			return NULL;
+		}
+
+		$authCodeUrl['value'] = $this->settings['authCodeUrlTempate'][$action];
+		$authCodeUrl['insertData'] = 1;
+		$authCodeUrl = $this->configurationManager->getContentObject()->cObjGetSingle('TEXT', $authCodeUrl);
+
+		if (empty($authCodeUrl)) {
+			return NULL;
+		}
+
+		$authCodeUrl = str_replace('###authcode###', $authCode, $authCodeUrl);
+
+		return $authCodeUrl;
 	}
 
 	/**
@@ -333,8 +369,8 @@ class SubscriptionHandler {
 			->setCreateAbsoluteUri(TRUE)
 			->setUseCacheHash(FALSE)
 			->uriFor($action, array('authCode' => $authCode->getAuthCode()));
-		$view->assign('actionUrl', $actionUrl);
-
+		$actionUrlTiny = $this->generateTinyUrl($action, $authCode->getAuthCode());
+		$view->assign('actionUrl', $actionUrlTiny ? $actionUrlTiny : $actionUrl);
 
 		if ($buildUnsubscribeUrl) {
 			$unsubscribeUrl = $this->uriBuilder
@@ -342,7 +378,8 @@ class SubscriptionHandler {
 				->setCreateAbsoluteUri(TRUE)
 				->setUseCacheHash(FALSE)
 				->uriFor('unsubscribeForm', array('authCode' => $authCode->getAuthCode()));
-			$view->assign('unsubscribeUrl', $unsubscribeUrl);
+			$unsubscribeUrlTiny = $this->generateTinyUrl('unsubscribeForm', $authCode->getAuthCode());
+			$view->assign('unsubscribeUrl', $unsubscribeUrlTiny ? $unsubscribeUrlTiny : $unsubscribeUrl);
 		}
 
 		$mailtext = $view->render();

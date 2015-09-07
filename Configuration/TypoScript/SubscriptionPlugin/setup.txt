@@ -28,10 +28,15 @@ plugin.tx_tellmatic {
 
 		privacyPolicyLink = 65 _blank
 
+		authCodeUrlSpeaking = 1
+		authCodeUrlTempate {
+			updateForm = {getIndpEnv : TYPO3_SITE_URL}nl/update/###authcode###
+			unsubscribeForm = {getIndpEnv : TYPO3_SITE_URL}nl/unsubscribe/###authcode###
+			subscribeConfirm = {getIndpEnv : TYPO3_SITE_URL}nl/confirm/###authcode###
+		}
+
 		mail {
 			from = newsletter@intera.de
 		}
-
 	}
-
 }
