@@ -1,0 +1,76 @@
+{namespace tm=Sto\Tellmatic\ViewHelpers}
+
+<div class="tx-tellmatic tx-tellmatic-subscribe tx-tellmatic-subscribe-subscriberequestform">
+
+	<h1>Newsletteranmeldung</h1>
+
+	<p>Bitte füllen Sie das folgende Formular aus, um sich für unseren Newsletter anzumelden.</p>
+
+	<p><f:link.action action="updateRequestForm">Hier können Sie</f:link.action> Ihre Daten
+		aktualisieren oder den Newsletter abzubestellen.</p>
+
+	<f:form action="subscribeRequest" method="post" enctype="multipart/form-data">
+
+
+		<f:form.validationResults>
+			<f:if condition="{validationResults.flattenedErrors}">
+				<div class="alert alert-warning">
+					<strong>Fehler</strong><br /> Beim Verarbeiten Ihrer Daten ist leider ein Fehler
+					aufgetreten. ###error_tellmatic###
+				</div>
+			</f:if>
+		</f:form.validationResults>
+
+		<tm:form.validatedControlGroup for="email">
+			<label class="control-label" for="email">E-Mail</label>
+			<tm:form.inlineHelpOrErrors />
+			<f:form.textfield class="form-control" id="email" type="text" name="email" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f0">
+			<label class="control-label" for="salutation">Anrede</label>
+			<tm:form.inlineHelpOrErrors />
+			<f:form.select id="salutation" class="form-control" name="additionalData[f0]" options="{salutationOptions}" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f1">
+			<label class="control-label" for="firstname">Vorname</label>
+			<tm:form.inlineHelpOrErrors />
+			<f:form.textfield id="firstname" class="form-control" name="additionalData[f1]" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f2">
+			<label class="control-label" for="lastname">Nachname</label>
+			<tm:form.inlineHelpOrErrors />
+			<f:form.textfield id="lastname" class="form-control" name="additionalData[f2]" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f3">
+			<label class="control-label" for="lastname">Firma</label>
+			<tm:form.inlineHelpOrErrors />
+			<f:form.textfield id="lastname" class="form-control" name="additionalData[f3]" />
+		</tm:form.validatedControlGroup>
+
+		<f:if condition="{settings.privacyPolicyLink}">
+			<tm:form.validatedControlGroup for="acceptConditions">
+				<label class="control-label">Datenschutz</label>
+				<tm:form.inlineHelpOrErrors />
+				<div class="checkbox">
+					<label>
+						<f:form.checkbox name="acceptConditions" value="true" checked="{acceptConditions}" />
+						Ich stimme den
+						<tm:link.typolink parameter="{settings.privacyPolicyLink}">
+							Datenschutzbestimmungen
+						</tm:link.typolink>
+						zu. </label>
+				</div>
+			</tm:form.validatedControlGroup>
+		</f:if>
+
+		<div class="form-group">
+			<f:form.submit class="btn btn-default" value="Absenden" />
+		</div>
+
+	</f:form>
+
+</div>

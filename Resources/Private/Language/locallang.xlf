@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2013-02-21T01:52:55Z" product-name="tellmatic">
+		<header/>
+		<body>
+			<trans-unit id="error.controller.subscribe.subscribeRequestForm.email.1221560718" xml:space="preserve">
+				<source>Please provide your email address.</source>
+			</trans-unit>
+			<trans-unit id="error.controller.subscribe.subscribeRequestForm.email.1221559976" xml:space="preserve">
+				<source>Please provide a valid email address.</source>
+			</trans-unit>
+			<trans-unit id="error.controller.subscribe.subscribeRequestForm.acceptConditions.1361959228" xml:space="preserve">
+				<source>Please accept our privacy policy.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

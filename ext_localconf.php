@@ -17,3 +17,10 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][TellmaticExtbase
 	'description' => 'An Extbase task that supports the display of the progress of the current command.',
 	'additionalFields' => \TYPO3\CMS\Extbase\Scheduler\FieldProvider::class
 );
+
+\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+	'Sto.Tellmatic',
+	'Subscribe',
+	array('Subscribe' => 'subscribeRequestForm,subscribeRequest,subscribeConfirm,updateRequestForm,updateRequest,updateForm,update,unsubscribeForm,unsubscribe'),
+	array('Subscribe' => 'subscribeRequestForm,subscribeRequest,subscribeConfirm,updateRequestForm,updateRequest,updateForm,update,unsubscribeForm,unsubscribe')
+);

@@ -25,6 +25,8 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
  */
 class AuthCodeCommandController extends CommandController {
 
+	const AUTH_CODE_CONTEXT = 'tellmatic_persistent';
+
 	/**
 	 * @inject
 	 * @var \Tx\Authcode\Domain\Repository\AuthCodeRepository
@@ -192,14 +194,12 @@ class AuthCodeCommandController extends CommandController {
 	 */
 	protected function updateCodeForAddress($addressId, $email, $currentAuthCode) {
 
-		$authCodeContext = 'tellmatic_persistent';
-
 		if (!empty($currentAuthCode)) {
 			$currentAuthCode = $this->authCodeRepository->findOneByAuthCode($currentAuthCode);
 			if (
 				isset($currentAuthCode)
 				&& $currentAuthCode->getIdentifier() === $email
-				&& $currentAuthCode->getIdentifierContext() === $authCodeContext
+				&& $currentAuthCode->getIdentifierContext() === static::AUTH_CODE_CONTEXT
 			) {
 				$this->logger->debug(sprintf('Auth code for email %s already exists and matches. Skipping regeneration.', $email));
 				return;
@@ -208,7 +208,7 @@ class AuthCodeCommandController extends CommandController {
 
 		$authCode = $this->objectManager->get(AuthCode::class);
 		$this->authCodeRepository->setAuthCodeExpiryTime('+ 1 year');
-		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $authCodeContext);
+		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, static::AUTH_CODE_CONTEXT);
 
 		$setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $authCode->getAuthCode());
 		$result = $this->tellmaticClient->sendSetCodeRequest($setCodeRequest);

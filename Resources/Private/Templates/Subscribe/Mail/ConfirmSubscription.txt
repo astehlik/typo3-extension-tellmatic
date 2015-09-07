@@ -1,0 +1,8 @@
+
+Vielen Dank für Ihre Anmeldung an unserem Newsletter.
+
+Um Ihre Anmeldung zu bestätigen, benutzen Sie bitte folgenden Link:
+
+{actionUrl}
+
+Sie können jederzeit Ihre Daten ändern oder den Newsletter abbestellen.

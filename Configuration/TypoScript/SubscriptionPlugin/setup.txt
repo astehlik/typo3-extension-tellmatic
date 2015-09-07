@@ -1,0 +1,37 @@
+plugin.tx_tellmatic {
+
+	settings {
+
+		additionalFieldValidators {
+			f0 {
+				10 {
+					type = RegularExpression
+					options.regularExpression = /^$|^Herr|Frau|Firma$/
+				}
+			}
+		}
+
+		salutationOptions {
+			10 {
+				label =
+			}
+			20 {
+				label = Frau
+			}
+			30 {
+				label = Herr
+			}
+			40 {
+				label = Firma
+			}
+		}
+
+		privacyPolicyLink = 65 _blank
+
+		mail {
+			from = newsletter@intera.de
+		}
+
+	}
+
+}

@@ -1,0 +1,26 @@
+{namespace tm=Sto\Tellmatic\ViewHelpers}
+
+<h1>Newsletter Anmeldung ändern</h1>
+
+<p>Sie möchten Ihre Daten aktualisieren oder unseren Newsletter abbestellen?</p>
+
+<p>Dann geben Sie bitte einfach Ihre E-Mail Adresse in das folgende Formular ein. Sie erhalten dann
+	eine E-Mail, die einen Link zum Ändern Ihrer Daten bzw. zum Abbestellen des Newsletters
+	enthält.</p>
+
+<p>Sie können dieses Formular auch dann nutzen, wenn Sie die Bestätigungsmail zur Anmeldung an
+	unserem Newsletter nicht erhalten haben.</p>
+
+<f:form action="updateRequest" method="post" enctype="multipart/form-data">
+
+	<tm:form.validatedControlGroup for="email">
+		<tm:form.inlineHelpOrErrors />
+		<label class="control-label" for="email">E-Mail</label>
+		<f:form.textfield class="form-control" id="email" type="text" name="email" />
+	</tm:form.validatedControlGroup>
+
+	<div class="form-group">
+		<f:form.submit class="btn btn-default" value="Absenden" />
+	</div>
+
+</f:form>

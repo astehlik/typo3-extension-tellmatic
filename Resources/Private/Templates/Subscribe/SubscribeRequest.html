@@ -1,0 +1,21 @@
+<f:if condition="{subscriptionSuccessful}">
+	<f:then>
+		<h1>Anmeldung erfolgreich</h1>
+
+		<p>Ihre Anmeldung wurde erfolgreich bestätigt.</p>
+
+		<p>Um Mißbrauch zu verhinden haben wir eine E-Mail an Sie versendet, in der Sie einen Link
+			finden mit dem Sie Ihre Anmeldung bestätigen können.</p>
+
+		<p>Sollten Sie keine E-Mail erhalten können Sie jederzeit eine
+			<f:link.action action="updateRequestForm">neue Bestätigungsmail
+				anfordern</f:link.action>.</p>
+	</f:then>
+	<f:else>
+		<h1>Ein Fehler ist aufgetreten</h1>
+
+		<p>Bei der Bestätigung Ihrer Anmeldung ist leider ein Fehler aufgetreten:</p>
+
+		<p>{subscriptionError}</p>
+	</f:else>
+</f:if>

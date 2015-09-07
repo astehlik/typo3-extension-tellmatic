@@ -1,0 +1,13 @@
+
+
+Vielen Dank für Ihre Anforderung.
+
+
+Mit folgendem Link können Sie Ihre Daten aktualisieren:
+
+{actionUrl}
+
+
+Mit folgendem Link können Sie sich von unserem Newsletter abmelden:
+
+{unsubscribeUrl}

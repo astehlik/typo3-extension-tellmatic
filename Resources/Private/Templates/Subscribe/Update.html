@@ -1,0 +1,16 @@
+<f:if condition="{requestSuccessful}">
+	<f:then>
+		<h1>Daten ändern</h1>
+
+		<p>Vielen Dank.</p>
+
+		<p>Die Aktualisierung Ihrer Daten war erfolgreich.</p>
+	</f:then>
+	<f:else>
+		<h1>Ein Fehler ist aufgetreten</h1>
+
+		<p>Bei der Aktualisierung Ihrer Daten ist leider ein Fehler aufgetreten:</p>
+
+		<p>{errorMessage}</p>
+	</f:else>
+</f:if>

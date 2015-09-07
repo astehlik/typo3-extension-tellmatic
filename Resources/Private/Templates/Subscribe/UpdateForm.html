@@ -1,0 +1,69 @@
+{namespace tm=Sto\Tellmatic\ViewHelpers}
+
+<f:if condition="{requestSuccessful}">
+	<f:then>
+		<f:render section="updateForm" arguments="{_all}" />
+	</f:then>
+	<f:else>
+		<h1>Ein Fehler ist aufgetreten</h1>
+
+		<p>Beim Laden Ihrer Daten ist ein Fehler aufgetreten:</p>
+
+		<p>{errorMessage}</p>
+	</f:else>
+</f:if>
+
+<f:section name="updateForm">
+
+	<h1>Daten ändern</h1>
+
+	<p>In nachfolgenden Formular können Sie Ihre Daten aktualisieren.</p>
+
+	<p>Wenn Sie den Newsletter nicht mehr erhalten möchten, können Sie ihn hier abbestellen.</p>
+
+	<p>Bitte beachten Sie: Um Ihre E-Mail Adresse zu ändern, melden Sie bitte die alte Adresse von
+		unserem Newsletter ab und melden sich einfach mit Ihrer neuen Adresse wieder an.</p>
+
+	<f:form action="update" method="post" enctype="multipart/form-data">
+
+		<f:form.validationResults>
+			<f:if condition="{validationResults.hasErrors}">
+				<div class="alert alert-warning">
+					<strong>Fehler</strong><br /> Beim Verarbeiten Ihrer Daten ist leider ein Fehler
+					aufgetreten. ###error_tellmatic###
+				</div>
+			</f:if>
+		</f:form.validationResults>
+
+		<tm:form.validatedControlGroup for="additionalData.f0">
+			<tm:form.inlineHelpOrErrors />
+			<label class="control-label" for="salutation">Anrede</label>
+			<f:form.select id="salutation" class="form-control" name="additionalData[f0]" options="{salutationOptions}" value="{f0}" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f1">
+			<tm:form.inlineHelpOrErrors />
+			<label class="control-label" for="firstname">Vorname</label>
+			<f:form.textfield id="firstname" class="form-control" name="additionalData[f1]" value="{f1}" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f2">
+			<tm:form.inlineHelpOrErrors />
+			<label class="control-label" for="lastname">Nachname</label>
+			<f:form.textfield id="lastname" class="form-control" name="additionalData[f2]" value="{f2}" />
+		</tm:form.validatedControlGroup>
+
+		<tm:form.validatedControlGroup for="additionalData.f3">
+			<tm:form.inlineHelpOrErrors />
+			<label class="control-label" for="lastname">Firma</label>
+			<f:form.textfield id="lastname" class="form-control" name="additionalData[f3]" value="{f3}" />
+		</tm:form.validatedControlGroup>
+
+		<f:form.hidden name="authCode" value="{authCode.authCode}" />
+
+		<div class="form-group">
+			<f:form.submit class="btn btn-default" value="Absenden" />
+		</div>
+
+	</f:form>
+</f:section>

@@ -1,0 +1,19 @@
+<f:if condition="{requestSuccessful}">
+	<f:then>
+		<h1>Newsletter abbestellen</h1>
+
+		<p>Wir bedauern, dass Sie unseren Newsletter nicht mehr erhalten möchten.</p>
+
+		<p>Ihre Daten wurden aus unserer Datenbank gelöscht.</p>
+
+		<p>Sie können sich gerne jederzeit <f:link.action action="subscribeRequestForm">wieder
+			anmelden</f:link.action>.</p>
+	</f:then>
+	<f:else>
+		<h1>Ein Fehler ist aufgetreten</h1>
+
+		<p>Bei der Abmeldung ist leider ein Fehler aufgetreten:</p>
+
+		<p>{errorMessage}</p>
+	</f:else>
+</f:if>

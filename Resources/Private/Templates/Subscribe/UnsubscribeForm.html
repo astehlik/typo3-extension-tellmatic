@@ -1,0 +1,47 @@
+{namespace tm=Sto\Tellmatic\ViewHelpers}
+
+<f:if condition="{requestSuccessful}">
+	<f:then>
+
+		<h1>Newsletter abbestellen</h1>
+
+		<p>Sie möchten unseren Newsletter nicht mehr erhalten?</p>
+
+		<p>Dann senden Sie bitte einfach das folgende Formular ab, dann werden Ihre Daten aus
+			unserer Datenbank entfernt.</p>
+
+		<f:form action="unsubscribe" method="post" enctype="multipart/form-data">
+
+			<tm:form.validatedControlGroup for="confirmRemoval">
+				<tm:form.inlineHelpOrErrors />
+				<div class="checkbox">
+					<label>
+						<f:form.checkbox name="confirmRemoval" checked="{confirmRemoval}" value="true" />
+						Hiermit möchte ich meine E-Mail Adresse <b>{authCode.identifier}</b> vom
+						Newsletter abmelden. </label>
+				</div>
+			</tm:form.validatedControlGroup>
+
+			<div class="form-group">
+				<f:form.submit class="btn btn-default" value="Abbestellen" />
+			</div>
+
+			<f:form.hidden name="historyId" value="{historyId}" />
+			<f:form.hidden name="queueId" value="{queueId}" />
+			<f:form.hidden name="newsletterId" value="{newsletterId}" />
+
+			<f:form.hidden name="authCode" value="{authCode.authCode}" />
+
+		</f:form>
+	</f:then>
+	<f:else>
+		<f:else>
+			<h1>Ein Fehler ist aufgetreten</h1>
+
+			<p>Beim Laden Ihrer Daten ist ein Fehler aufgetreten:</p>
+
+			<p>{errorMessage}</p>
+		</f:else>
+	</f:else>
+</f:if>
+

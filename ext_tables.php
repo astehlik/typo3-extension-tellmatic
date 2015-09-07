@@ -4,3 +4,11 @@ if (!defined('TYPO3_MODE')) {
 }
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addStaticFile($_EXTKEY, 'Configuration/TypoScript/Formhandler/', 'Tellmatic Formhandler forms');
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addStaticFile($_EXTKEY, 'Configuration/TypoScript/SubscriptionPlugin/', 'Tellmatic Subscription plugin');
+
+\TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
+	'Sto.Tellmatic',
+	'Subscribe',
+	'Tellmatic subscription'
+);
