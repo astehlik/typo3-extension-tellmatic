@@ -26,24 +26,6 @@ class SubscribeRequest implements TellmaticRequestInterface {
 	protected $additionalFields = array();
 
 	/**
-	 * This array will be used to check if all provided additional fields are valid.
-	 *
-	 * @var array
-	 */
-	protected $allowedAdditionalFields = array(
-		'f0' => '',
-		'f1' => '',
-		'f2' => '',
-		'f3' => '',
-		'f4' => '',
-		'f5' => '',
-		'f6' => '',
-		'f7' => '',
-		'f8' => '',
-		'f9' => '',
-	);
-
-	/**
 	 * @var bool
 	 */
 	protected $doNotSendEmails = FALSE;
@@ -128,6 +110,26 @@ class SubscribeRequest implements TellmaticRequestInterface {
 	}
 
 	/**
+	 * This array will be used to check if all provided additional fields are valid.
+	 *
+	 * @return array
+	 */
+	public static function getAllowedAdditionalFields() {
+		return array(
+			'f0' => '',
+			'f1' => '',
+			'f2' => '',
+			'f3' => '',
+			'f4' => '',
+			'f5' => '',
+			'f6' => '',
+			'f7' => '',
+			'f8' => '',
+			'f9' => '',
+		);
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function getDoNotSendEmails() {
@@ -169,7 +171,7 @@ class SubscribeRequest implements TellmaticRequestInterface {
 	 */
 	public function setAdditionalFields(array $additionalFields) {
 
-		$invalidAdditionalFields = array_diff_key($additionalFields, $this->allowedAdditionalFields);
+		$invalidAdditionalFields = array_diff_key($additionalFields, static::getAllowedAdditionalFields());
 
 		if (count($invalidAdditionalFields)) {
 			throw new \RuntimeException('You provided invalid additional Fields: ' . implode(', ', array_keys($invalidAdditionalFields)));
