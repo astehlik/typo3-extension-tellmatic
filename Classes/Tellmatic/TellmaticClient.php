@@ -71,12 +71,6 @@ class TellmaticClient {
 	);
 
 	/**
-	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
-	 * @inject
-	 */
-	protected $objectManager;
-
-	/**
 	 * The class that should be used as response
 	 *
 	 * @var string
@@ -189,7 +183,7 @@ class TellmaticClient {
 	 * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
 	 */
 	protected function createResponse() {
-		return $this->objectManager->get($this->responseClass);
+		return GeneralUtility::makeInstance($this->responseClass);
 	}
 
 	/**
@@ -257,7 +251,7 @@ class TellmaticClient {
 	 * initialized.
 	 */
 	protected function initializeHttpRequest() {
-		$this->httpRequest = $this->objectManager->get(AccessibleHttpRequest::class);
+		$this->httpRequest = GeneralUtility::makeInstance(AccessibleHttpRequest::class);
 		$this->httpRequest->setConfiguration($this->httpRequestConfiguration);
 	}
 
