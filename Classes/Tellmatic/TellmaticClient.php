@@ -172,12 +172,13 @@ class TellmaticClient {
 		$postParameters = $this->httpRequest->getPostParameters();
 
 		$encryptionKeyBackup = $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'];
-		$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = $this->extensionConfiguration->getTellmaticApiKey();
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = $this->getTellmaticApiKey();
 
 		$this->httpRequest->addPostParameter('apiKey', GeneralUtility::hmac(serialize($postParameters), 'TellmaticAPI'));
 
 		$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = $encryptionKeyBackup;
 	}
+
 
 	/**
 	 * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
@@ -218,7 +219,21 @@ class TellmaticClient {
 			$tellmaticResponse->setFailureFromJsonResponse($parsedResponse);
 		}
 
+		// Reset HTTP request.
+		$this->httpRequest = NULL;
+
 		return $tellmaticResponse;
+	}
+
+	/**
+	 * Reads the API key from the extension configuration.
+	 *
+	 * Moved to a seperate method for unit testing.
+	 *
+	 * @return string
+	 */
+	protected function getTellmaticApiKey() {
+		return $this->extensionConfiguration->getTellmaticApiKey();
 	}
 
 	/**
@@ -251,6 +266,11 @@ class TellmaticClient {
 	 * initialized.
 	 */
 	protected function initializeHttpRequest() {
+
+		if (isset($this->httpRequest)) {
+			return;
+		}
+
 		$this->httpRequest = GeneralUtility::makeInstance(AccessibleHttpRequest::class);
 		$this->httpRequest->setConfiguration($this->httpRequestConfiguration);
 	}

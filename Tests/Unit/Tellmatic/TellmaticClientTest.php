@@ -11,6 +11,7 @@ namespace Sto\Tellmatic\Tests\Unit\Tellmatic;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
 use Sto\Tellmatic\Tellmatic\TellmaticClient;
@@ -67,7 +68,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 		$this->tellmaticResponse = GeneralUtility::makeInstance(TellmaticResponse::class);
 
-		$this->tellmaticClient = $this->getMock(TellmaticClient::class, array('dummy', 'createResponse'));
+		$this->tellmaticClient = $this->getMock(TellmaticClient::class, array('dummy', 'createResponse', 'getTellmaticApiKey'));
 		$this->tellmaticClient->expects($this->once())->method('createResponse')->will($this->returnValue($this->tellmaticResponse));
 		$this->tellmaticClient->setCustomUrl($this->testUrlValid);
 	}
@@ -87,7 +88,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($this->responseDataValid));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
 		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
 		/** @var SubscribeRequest $subscribeRequest */
@@ -117,7 +118,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
 		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
 		/** @var SubscribeRequest $subscribeRequest */
@@ -172,7 +173,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_NOT_FOUND));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
 		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
 		/** @var SubscribeRequest $subscribeRequest */
@@ -198,7 +199,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue('totally invalid response data'));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(\TYPO3\CMS\Core\Http\HttpRequest::class, array('send'));
+		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
 		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
 		/** @var SubscribeRequest $subscribeRequest */

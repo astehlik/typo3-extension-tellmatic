@@ -52,7 +52,7 @@ class ExtensionConfiguration implements SingletonInterface {
 	/**
 	 * Returns the Tellmatic API key.
 	 *
-	 * @return array
+	 * @return string
 	 */
 	public function getTellmaticApiKey() {
 		if (empty($this->settings['tellmaticApiKey'])) {
