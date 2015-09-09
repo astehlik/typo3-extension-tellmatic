@@ -188,17 +188,25 @@ class SubscribeController extends ActionController {
 	/**
 	 * Updates the personal information in the Tellmatic database.
 	 *
+	 * @param string $email
 	 * @param string $authCode
 	 * @param array $additionalData
+	 * @validate $email NotEmpty, EmailAddress
 	 * @validate $additionalData Sto\Tellmatic\Validation\AdditionalFieldValidator
 	 */
-	public function updateAction($authCode, array $additionalData = array()) {
+	public function updateAction($email, $authCode, array $additionalData = array()) {
 
 		try {
 			$authCode = $this->getValidAuthCode($authCode);
 
-			$subscriptionHandler = $this->getSubscriptionHandler();
-			$subscriptionHandler->handleUpdateSubmit($authCode->getIdentifier(), $additionalData, 'Data updated by auth code in ' . __METHOD__);
+			if ($email !== $authCode->getIdentifier()) {
+				$subscriptionHandler = $this->getSubscriptionHandler();
+				$subscriptionHandler->handleUnsubscribeSubmit($authCode->getIdentifier(), 0, 0, 0, 'Unsubscribed because of email address change in ' . __METHOD__);
+				$subscriptionHandler->handleSubscribeRequest($email, $additionalData, 'New subscription because of email address change in ' . __METHOD__);
+			} else {
+				$subscriptionHandler = $this->getSubscriptionHandler();
+				$subscriptionHandler->handleUpdateSubmit($authCode->getIdentifier(), $additionalData, 'Data updated by auth code in ' . __METHOD__);
+			}
 
 			$this->authCodeRepository->clearAssociatedAuthCodes($authCode);
 
@@ -224,7 +232,7 @@ class SubscribeController extends ActionController {
 				throw new UpdateInvalidStateException($subscribeStateResponse->getSubscribeState());
 			}
 
-			$this->view->assign('email', $authCode->getIdentifier());
+			$this->view->assign('email', $this->getSubmittedValueOrDefault('email', $authCode->getIdentifier()));
 
 			$addressData = $subscribeStateResponse->getAddressData();
 			foreach (SubscribeRequest::getAllowedAdditionalFields() as $field => $unused) {
