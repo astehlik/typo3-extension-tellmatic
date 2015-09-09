@@ -96,7 +96,7 @@ class SubscribeStateResponse extends TellmaticResponse {
 			throw new \RuntimeException('Tellmatic answered with an invalid subscribe state: ' . $subscribeState);
 		}
 
-		if (!empty($responseData['address_data'])) {
+		if (!empty($responseData['address_data']) && is_array($responseData['address_data'])) {
 			$this->addressData = $responseData['address_data'];
 		}
 

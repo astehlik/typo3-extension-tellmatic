@@ -14,7 +14,6 @@ namespace Sto\Tellmatic\Command;
 use Sto\Tellmatic\Tellmatic\Request\AddressCountRequest;
 use Sto\Tellmatic\Tellmatic\Request\AddressSearchRequest;
 use Sto\Tellmatic\Tellmatic\Request\SetCodeRequest;
-use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
 use Sto\Tellmatic\Utility\OffsetIterator;
 use Tx\Authcode\Domain\Model\AuthCode;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -63,6 +62,7 @@ class AuthCodeCommandController extends CommandController {
 	 * @param int $itemCountPerRun The number of items that are added to the queue in one run.
 	 * @param string $refreshInterval
 	 * @param bool $forceNewRun
+	 * @throws \Exception
 	 */
 	public function refreshCodesCommand($itemCountPerRun = 2, $refreshInterval = '2 minutes', $forceNewRun = FALSE) {
 
@@ -82,13 +82,19 @@ class AuthCodeCommandController extends CommandController {
 			}
 		}
 
-		$addressCount = $this->getAddressCount();
-		$addresses = $this->getAddresses($offsetIterator->current(), $itemCountPerRun);
-		$processedItemCount = 0;
+		try {
+			$addressCount = $this->getAddressCount();
+			$addresses = $this->getAddresses($offsetIterator->current(), $itemCountPerRun);
+			$processedItemCount = 0;
 
-		foreach ($addresses as $address) {
-			$this->updateCodeForAddress((int)$address['id'], $address['email'], $address['code_external']);
-			$processedItemCount++;
+			foreach ($addresses as $address) {
+				$this->updateCodeForAddress((int)$address['id'], $address['email'], $address['code_external']);
+				$processedItemCount++;
+			}
+		} catch (\Exception $e) {
+			$this->logger->critical($e->getMessage());
+			$this->logger->error($e->getTraceAsString());
+			throw $e;
 		}
 
 		$offsetIterator->next($processedItemCount, $itemCountPerRun, $addressCount);
@@ -110,12 +116,6 @@ class AuthCodeCommandController extends CommandController {
 
 		$result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
 
-		if (!$result->getSuccess()) {
-			$errorMessage = $this->getErrorMessage('Address count failed', $result);
-			$this->logger->error($errorMessage);
-			throw new \RuntimeException($errorMessage);
-		}
-
 		$addressCount = $result->getAddressCount();
 
 		$this->logger->info(sprintf('Found %d address records in the database.', $addressCount));
@@ -136,26 +136,7 @@ class AuthCodeCommandController extends CommandController {
 		$addressSearchRequest->setOffset($offset);
 		$addressSearchRequest->setLimit($limit);
 
-		$result = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
-
-		if ($result->getSuccess()) {
-			return $result->getAddresses();
-		} else {
-			$errorMessage = $this->getErrorMessage('Fetching address records failed', $result);
-			$this->logger->error($errorMessage);
-			throw new \RuntimeException($errorMessage);
-		}
-	}
-
-	/**
-	 * Builds an error message of the given Tellmatic response.
-	 *
-	 * @param string $prefix
-	 * @param TellmaticResponse $result
-	 * @return string
-	 */
-	protected function getErrorMessage($prefix, $result) {
-		return $prefix . ': ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')';
+		$this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
 	}
 
 	/**
@@ -211,11 +192,6 @@ class AuthCodeCommandController extends CommandController {
 		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, static::AUTH_CODE_CONTEXT);
 
 		$setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $authCode->getAuthCode());
-		$result = $this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
-		if (!$result->getSuccess()) {
-			$errorMessage = $this->getErrorMessage('Setting auth code for addres ' . $email . ' failed', $result);
-			$this->logger->error($errorMessage);
-			throw new \RuntimeException($errorMessage);
-		}
+		$this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
 	}
 }

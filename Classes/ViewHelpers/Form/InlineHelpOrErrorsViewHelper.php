@@ -116,13 +116,13 @@ class InlineHelpOrErrorsViewHelper extends AbstractViewHelper {
 		foreach ($messages as $message) {
 			$controllerId = $controllerPrefix . $message->getCode();
 			$translatedMessage = $this->translateById($controllerId);
-			if ($translatedMessage === $controllerId) {
+			if (!isset($translatedMessage)) {
 				$propertyId = $propertyPrefix . $message->getCode();
 				$translatedMessage = $this->translateById($propertyId);
-				if ($translatedMessage === $propertyId) {
+				if (!isset($translatedMessage)) {
 					$genericId = $genericPrefix . $message->getCode();
 					$translatedMessage = $this->translateById($genericId);
-					if ($genericId === $translatedMessage) {
+					if (!isset($translatedMessage)) {
 						$translatedMessage = $message . ' [' . $controllerId . ' or ' . $propertyId . ' or ' . $genericId . ']';
 					}
 				}
@@ -195,9 +195,6 @@ class InlineHelpOrErrorsViewHelper extends AbstractViewHelper {
 	protected function translateById($id) {
 		$request = $this->controllerContext->getRequest();
 		$translation = LocalizationUtility::translate($id, $request->getControllerExtensionName());
-		if (is_null($translation)) {
-			$translation = $id . ' (Missing translation)';
-		}
 		return $translation;
 	}
 }

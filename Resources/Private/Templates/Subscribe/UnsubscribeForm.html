@@ -1,7 +1,7 @@
 {namespace tm=Sto\Tellmatic\ViewHelpers}
 
-<f:if condition="{requestSuccessful}">
-	<f:then>
+<f:if condition="{hasErrors}">
+	<f:else>
 
 		<h1>Newsletter abbestellen</h1>
 
@@ -11,6 +11,8 @@
 			unserer Datenbank entfernt.</p>
 
 		<f:form action="unsubscribe" method="post" enctype="multipart/form-data">
+
+			<f:render partial="Subscription/Errors" arguments="{_all}" />
 
 			<tm:form.validatedControlGroup for="confirmRemoval">
 				<tm:form.inlineHelpOrErrors />
@@ -33,15 +35,15 @@
 			<f:form.hidden name="authCode" value="{authCode.authCode}" />
 
 		</f:form>
-	</f:then>
-	<f:else>
+	</f:else>
+	<f:then>
 		<f:else>
 			<h1>Ein Fehler ist aufgetreten</h1>
 
 			<p>Beim Laden Ihrer Daten ist ein Fehler aufgetreten:</p>
 
-			<p>{errorMessage}</p>
+			<p><f:render partial="Subscription/TellmaticError" arguments="{_all}" /></p>
 		</f:else>
-	</f:else>
+	</f:then>
 </f:if>
 

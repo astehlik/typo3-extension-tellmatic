@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic\Response;
+namespace Sto\Tellmatic\Utility\Exception;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,16 +12,16 @@ namespace Sto\Tellmatic\Tellmatic\Response;
  *                                                                        */
 
 /**
- * A generic response from the Tellmatic server.
+ * This Exception is thrown when an invalid auth code was submitted.
  */
-class TellmaticResponse {
+class InvalidAuthCodeException extends \Exception {
 
 	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
+	 * @param string $message
+	 * @param int $code
+	 * @param \Exception|NULL $previous
 	 */
-	public function processAdditionalResponseData($response) {
+	public function __construct($message = 'The submitted auth code is invalid.', $code = 1441802183, \Exception $previous = NULL) {
+		parent::__construct($message, $code, $previous);
 	}
 }

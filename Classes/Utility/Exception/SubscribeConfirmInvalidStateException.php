@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic\Response;
+namespace Sto\Tellmatic\Utility\Exception;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,16 +12,18 @@ namespace Sto\Tellmatic\Tellmatic\Response;
  *                                                                        */
 
 /**
- * A generic response from the Tellmatic server.
+ * This exception is thrown when the user tries to confirm his subscription
+ * and the address has an invalid state (e.g. was already confirmed or removed).
  */
-class TellmaticResponse {
+class SubscribeConfirmInvalidStateException extends \Exception {
 
 	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
+	 * @param string $subscribeState
+	 * @param int $code
+	 * @param \Exception|NULL $previous
 	 */
-	public function processAdditionalResponseData($response) {
+	public function __construct($subscribeState, $code = 1441812286, \Exception $previous = NULL) {
+		$message = 'The address record is not in a valid state for subscription confirmation: ' . $subscribeState;
+		parent::__construct($message, $code, $previous);
 	}
 }

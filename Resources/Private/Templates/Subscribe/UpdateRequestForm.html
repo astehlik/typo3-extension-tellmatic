@@ -13,9 +13,11 @@
 
 <f:form action="updateRequest" method="post" enctype="multipart/form-data">
 
+	<f:render partial="Subscription/Errors" arguments="{_all}" />
+
 	<tm:form.validatedControlGroup for="email">
-		<tm:form.inlineHelpOrErrors />
 		<label class="control-label" for="email">E-Mail</label>
+		<tm:form.inlineHelpOrErrors />
 		<f:form.textfield class="form-control" id="email" type="text" name="email" />
 	</tm:form.validatedControlGroup>
 

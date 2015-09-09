@@ -15,6 +15,42 @@
 				<source>Please accept our privacy policy.</source>
 				<target>Bitte akzeptieren Sie unsere Datenschutzbestimmungen.</target>
 			</trans-unit>
+			<trans-unit id="error.property.confirmRemoval.1361959228" xml:space="preserve">
+				<source>Please confirm the removal of your email address.</source>
+				<target>Bitte bestätigen Sie, dass Sie Ihre Adresse abmelden möchten.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441711344" xml:space="preserve">
+				<source>The remove server has provided an invalid response.</source>
+				<target>Der Server hat ein eine ungültige Antwort geliefert.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441711235" xml:space="preserve">
+				<source>The submitted data could not be validated by the server.</source>
+				<target>Die an den Server übermittelten Daten sind fehlerhaft.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441802183" xml:space="preserve">
+				<source>Your link is invalid. This can happen when you use links multiple times or too much time has passed.</source>
+				<target>Der Link ist ungültig. Das kann passieren, wenn ein Link mehrfach verwendet wird, oder der Link zu alt ist.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441812286" xml:space="preserve">
+				<source>Your address is already confirmed or was deleted from our database.</source>
+				<target>Ihre Adresse wurde bereits bestätigt oder aus unserer Datenbank gelöscht.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441711838" xml:space="preserve">
+				<source>Your address was already removed from our database.</source>
+				<target>Ihre Adresse wurde bereits aus unserer Datenbank entfernt.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441711849" xml:space="preserve">
+				<source>Your address was already removed from our database.</source>
+				<target>Ihre Adresse wurde bereits aus unserer Datenbank entfernt.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.1441813632" xml:space="preserve">
+				<source>Updating your data is not possible because your address was removed from our database.</source>
+				<target>Das Aktualisieren Ihrer Daten ist nicht möglich, da Ihre Adresse aus unserer Datenbank entfernt wurde.</target>
+			</trans-unit>
+			<trans-unit id="error.property.tellmatic.unknown" xml:space="preserve">
+				<source>The communation with the remove server has failed.</source>
+				<target>Die Kommunikation mit dem Server ist fehlgeschlagen.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

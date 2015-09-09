@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic\Response;
+namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,16 +12,16 @@ namespace Sto\Tellmatic\Tellmatic\Response;
  *                                                                        */
 
 /**
- * A generic response from the Tellmatic server.
+ * Invalid form data was submitted to the API. Check the validation settings in Tellmatic!
  */
-class TellmaticResponse {
+class InvalidFormDataException extends TellmaticException {
 
 	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
+	 * @param array $responseData
+	 * @param int $code
+	 * @param null $previous
 	 */
-	public function processAdditionalResponseData($response) {
+	public function __construct(array $responseData, $code = 1441711235, $previous = NULL) {
+		parent::__construct($responseData, $code, $previous);
 	}
 }

@@ -14,6 +14,7 @@ namespace Sto\Tellmatic\Utility;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
+use Sto\Tellmatic\Utility\Exception\SubscribeConfirmInvalidStateException;
 use Tx\Authcode\Domain\Model\AuthCode;
 use TYPO3\CMS\Core\Mail\MailMessage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -81,16 +82,14 @@ class SubscriptionHandler {
 	 *
 	 * @param string $email
 	 * @param string $memo
+	 * @throws SubscribeConfirmInvalidStateException
 	 */
 	public function handleSubscribeConfirmation($email, $memo) {
 
 		$subscribeStateResponse = $this->tellmaticClient->getSubscribeState($email);
-		if (!$subscribeStateResponse->getSuccess()) {
-			throw new \RuntimeException('Error during Tellmatic request: ' . $subscribeStateResponse->getFailureReason());
-		}
 
 		if ($subscribeStateResponse->getSubscribeState() !== SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED) {
-			throw new \RuntimeException('The address record is not in a valid state for subscription confirmation: ' . $subscribeStateResponse->getSubscribeState());
+			throw new SubscribeConfirmInvalidStateException($subscribeStateResponse->getSubscribeState());
 		}
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
@@ -248,13 +247,7 @@ class SubscriptionHandler {
 	 * @return SubscribeStateResponse
 	 */
 	protected function getSubscriptionState($email) {
-
 		$subscribeStateResponse = $this->tellmaticClient->getSubscribeState($email);
-
-		if (!$subscribeStateResponse->getSuccess()) {
-			throw new \RuntimeException('Error during Tellmatic request: ' . $subscribeStateResponse->getFailureReason());
-		}
-
 		return $subscribeStateResponse;
 	}
 
@@ -428,10 +421,6 @@ class SubscriptionHandler {
 		$subscribeRequest->setOverrideAddressStatus($status);
 		$subscribeRequest->getMemo()->addLineToMemo($memo);
 		$subscribeRequest->getMemo()->appendDefaultMemo($this);
-		$subscribeResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-
-		if (!$subscribeResponse->getSuccess()) {
-			throw new \RuntimeException('Error during Tellmatic request: ' . $subscribeResponse->getFailureReason());
-		}
+		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 	}
 }

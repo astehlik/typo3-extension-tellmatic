@@ -11,7 +11,7 @@ namespace Sto\Tellmatic\Formhandler;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
+use Sto\Tellmatic\Tellmatic\Exception\TellmaticException;
 use Sto\Tellmatic\Utility\FormhandlerUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -28,15 +28,17 @@ class SubscribeFinisher extends \Tx_Formhandler_AbstractFinisher {
 	 */
 	public function process() {
 
+		$exception = NULL;
+
 		try {
-			$response = $this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
-			if ($response->getSuccess()) {
-			} else {
-				$errors['tellmatic'] = $response->getFailureCode();
-				$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $response->getFailureReason());
-			}
+			$this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
+		} catch (TellmaticException $exception) {
+			$errors['tellmatic'] = $exception->getFailureCode();
 		} catch (\Exception $exception) {
-			$errors['tellmatic'] = TellmaticResponse::FAILURE_CODE_UNKNOWN;
+			$errors['tellmatic'] = 'unknown';
+		}
+
+		if (isset($exception)) {
 			$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
 		}
 

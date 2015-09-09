@@ -12,10 +12,15 @@ namespace Sto\Tellmatic\Controller;
  *                                                                        */
 
 use Sto\Tellmatic\Command\AuthCodeCommandController;
+use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
+use Sto\Tellmatic\Utility\Exception\InvalidAuthCodeException;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
+use Sto\Tellmatic\Utility\Exception\UpdateInvalidStateException;
 use Sto\Tellmatic\Utility\SubscriptionHandler;
+use Sto\Tellmatic\Utility\TellmaticArgument;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Validation\Error as ValidationError;
 use TYPO3\CMS\Fluid\View\TemplateView;
 
 /**
@@ -50,24 +55,17 @@ class SubscribeController extends ActionController {
 	 */
 	public function subscribeConfirmAction($authCode) {
 
-		$subscriptionSuccessful = TRUE;
-		$subscriptionError = '';
-
 		try {
 			$authCode = $this->getValidAuthCode($authCode);
 
 			$subscriptionHandler = $this->getSubscriptionHandler();
 			$subscriptionHandler->handleSubscribeConfirmation($authCode->getIdentifier(), 'Subscription confirmed by auth code in ' . __METHOD__);
 
-		} catch (\Exception $e) {
-			$subscriptionSuccessful = FALSE;
-			$subscriptionError = $e->getMessage();
-		}
+			$this->authCodeRepository->clearAssociatedAuthCodes($authCode);
 
-		$this->view->assignMultiple(array(
-			'subscriptionSuccessful' => $subscriptionSuccessful,
-			'subscriptionError' => $subscriptionError,
-		));
+		} catch (\Exception $e) {
+			$this->handleException($e);
+		}
 	}
 
 	/**
@@ -95,8 +93,7 @@ class SubscribeController extends ActionController {
 			$subscriptionHandler = $this->getSubscriptionHandler();
 			$subscriptionHandler->handleSubscribeRequest($email, $additionalData, 'Subscription form in ' . __METHOD__);
 		} catch (\Exception $e) {
-			$subscriptionSuccessful = FALSE;
-			$subscriptionError = $e->getMessage();
+			$this->handleException($e);
 		}
 
 		$this->view->assignMultiple(array(
@@ -137,9 +134,6 @@ class SubscribeController extends ActionController {
 		$confirmRemoval
 	) {
 
-		$requestSuccessful = TRUE;
-		$errorMessage = '';
-
 		try {
 			$authCode = $this->getValidAuthCode($authCode);
 
@@ -149,16 +143,11 @@ class SubscribeController extends ActionController {
 			$this->authCodeRepository->clearAssociatedAuthCodes($authCode);
 
 		} catch (\Exception $e) {
-			$requestSuccessful = FALSE;
-			$errorMessage = $e->getMessage();
+			$this->handleException($e);
 		}
 
 		$this->assignSalutationOptionsInView();
-		$this->view->assignMultiple(array(
-			'requestSuccessful' => $requestSuccessful,
-			'errorMessage' => $errorMessage,
-			'confirmRemoval' => $this->getSubmittedValueOrDefault('confirmRemoval', TRUE),
-		));
+		$this->view->assign('confirmRemoval', $this->getSubmittedValueOrDefault('confirmRemoval', TRUE));
 	}
 
 	/**
@@ -168,21 +157,15 @@ class SubscribeController extends ActionController {
 	 */
 	public function unsubscribeFormAction($authCode) {
 
-		$requestSuccessful = TRUE;
-		$errorMessage = '';
-
 		try {
 			$authCode = $this->getValidAuthCode($authCode);
 			$this->view->assign('authCode', $authCode);
 		} catch (\Exception $e) {
-			$requestSuccessful = FALSE;
-			$errorMessage = $e->getMessage();
+			$this->handleException($e);
 		}
 
 		$this->assignSalutationOptionsInView();
 		$this->view->assignMultiple(array(
-			'requestSuccessful' => $requestSuccessful,
-			'errorMessage' => $errorMessage,
 			'confirmRemoval' => $this->getSubmittedValueOrDefault('confirmRemoval', TRUE),
 			'historyId' => GeneralUtility::_GET('h_id'),
 			'queueId' => GeneralUtility::_GET('q_id'),
@@ -199,9 +182,6 @@ class SubscribeController extends ActionController {
 	 */
 	public function updateAction($authCode, array $additionalData = array()) {
 
-		$requestSuccessful = TRUE;
-		$errorMessage = '';
-
 		try {
 			$authCode = $this->getValidAuthCode($authCode);
 
@@ -211,14 +191,8 @@ class SubscribeController extends ActionController {
 			$this->authCodeRepository->clearAssociatedAuthCodes($authCode);
 
 		} catch (\Exception $e) {
-			$requestSuccessful = FALSE;
-			$errorMessage = $e->getMessage();
+			$this->handleException($e);
 		}
-
-		$this->view->assignMultiple(array(
-			'requestSuccessful' => $requestSuccessful,
-			'errorMessage' => $errorMessage,
-		));
 	}
 
 	/**
@@ -228,16 +202,14 @@ class SubscribeController extends ActionController {
 	 */
 	public function updateFormAction($authCode) {
 
-		$requestSuccessful = TRUE;
-		$errorMessage = '';
-
 		try {
 			$authCode = $this->getValidAuthCode($authCode);
 			$this->view->assign('authCode', $authCode);
 
 			$subscribeStateResponse = $this->tellmaticClient->getSubscribeState($authCode->getIdentifier());
-			if (!$subscribeStateResponse->getSuccess()) {
-				throw new \RuntimeException('Error during Tellmatic request: ' . $subscribeStateResponse->getFailureReason());
+
+			if ($subscribeStateResponse->getSubscribeState() === SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED) {
+				throw new UpdateInvalidStateException($subscribeStateResponse->getSubscribeState());
 			}
 
 			$this->view->assign('email', $authCode->getIdentifier());
@@ -249,15 +221,10 @@ class SubscribeController extends ActionController {
 				}
 			}
 		} catch (\Exception $e) {
-			$requestSuccessful = FALSE;
-			$errorMessage = $e->getMessage();
+			$this->handleException($e);
 		}
 
 		$this->assignSalutationOptionsInView();
-		$this->view->assignMultiple(array(
-			'requestSuccessful' => $requestSuccessful,
-			'errorMessage' => $errorMessage,
-		));
 	}
 
 	/**
@@ -268,21 +235,44 @@ class SubscribeController extends ActionController {
 	 */
 	public function updateRequestAction($email) {
 
-		$updateRequestSuccessful = TRUE;
-		$updateError = '';
-
 		try {
 			$subscriptionHandler = $this->getSubscriptionHandler();
 			$subscriptionHandler->handleUpdateRequest($email);
 		} catch (\Exception $e) {
-			$updateRequestSuccessful = FALSE;
-			$updateError = $e->getMessage();
+			$this->handleException($e);
+		}
+	}
+
+	/**
+	 * Initializes the tellmatic argument validation error based on the given Exception.
+	 *
+	 * @param \Exception $exception
+	 */
+	protected function handleException(\Exception $exception) {
+
+		/** @noinspection PhpMethodParametersCountMismatchInspection */
+		$tellmaticArgument = $this->objectManager->get(TellmaticArgument::class, 'tellmatic', 'Text');
+		$this->arguments->addArgument($tellmaticArgument);
+
+		$argumentValidationResults = $this->objectManager->get(\TYPO3\CMS\Extbase\Error\Result::class);
+		$argumentValidationResults->addError(new ValidationError($exception->getMessage(), $exception->getCode()));
+		$tellmaticArgument->setValidationResults($argumentValidationResults);
+
+		if (
+			$this->request instanceof \TYPO3\CMS\Extbase\Mvc\Web\Request
+			&& $this->request->getReferringRequest() !== NULL
+		) {
+			$referringRequest = $this->request->getReferringRequest();
+			if (
+				$referringRequest->getControllerActionName() !== $this->request->getControllerActionName()
+				|| $referringRequest->getControllerName() !== $this->request->getControllerName()
+			) {
+				$this->errorAction();
+			}
 		}
 
-		$this->view->assignMultiple(array(
-			'requestSuccessful' => $updateRequestSuccessful,
-			'errorMessage' => $updateError,
-		));
+		$this->view->assign('hasErrors', TRUE);
+		$this->request->setOriginalRequestMappingResults($this->arguments->getValidationResults());
 	}
 
 	/**
@@ -357,6 +347,7 @@ class SubscribeController extends ActionController {
 	 *
 	 * @param string $authCode
 	 * @return \Tx\Authcode\Domain\Model\AuthCode
+	 * @throws InvalidAuthCodeException
 	 */
 	protected function getValidAuthCode($authCode) {
 		$authCodeObject = $this->authCodeRepository->findOneIndependentByAuthCodeAndContext($authCode, static::AUTH_CODE_CONTEXT);
@@ -364,7 +355,7 @@ class SubscribeController extends ActionController {
 			$authCodeObject = $this->authCodeRepository->findOneIndependentByAuthCodeAndContext($authCode, AuthCodeCommandController::AUTH_CODE_CONTEXT);
 		}
 		if (!isset($authCodeObject)) {
-			throw new \InvalidArgumentException('The submitted auth code is invalid.');
+			throw new InvalidAuthCodeException();
 		}
 		return $authCodeObject;
 	}

@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic\Response;
+namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,16 +12,16 @@ namespace Sto\Tellmatic\Tellmatic\Response;
  *                                                                        */
 
 /**
- * A generic response from the Tellmatic server.
+ * The address submitted for unsubscription is already unsubscribed.
  */
-class TellmaticResponse {
+class AddressUnsubscribedException extends TellmaticException {
 
 	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
+	 * @param string $message
+	 * @param int $code
+	 * @param null $previous
 	 */
-	public function processAdditionalResponseData($response) {
+	public function __construct($message, $code = 1441711849, $previous = NULL) {
+		parent::__construct($message, $code, $previous);
 	}
 }

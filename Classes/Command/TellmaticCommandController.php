@@ -41,11 +41,7 @@ class TellmaticCommandController extends CommandController {
 		$addressCountRequest->setSearch($search);
 		$addressCountRequest->setGroupId($groupId);
 		$result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
-		if ($result->getSuccess()) {
-			$this->outputLine('Address count is: ' . $result->getAddressCount());
-		} else {
-			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
-		}
+		$this->outputLine('Address count is: ' . $result->getAddressCount());
 	}
 
 	/**
@@ -59,12 +55,8 @@ class TellmaticCommandController extends CommandController {
 		$addressSearchRequest->setSearch($search);
 		$addressSearchRequest->setGroupId($groupId);
 		$result = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
-		if ($result->getSuccess()) {
-			foreach ($result->getAddresses() as $address) {
-				$this->outputLine('Found address ' . $address['email'] . ' with ID ' . $address['id']);
-			}
-		} else {
-			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
+		foreach ($result->getAddresses() as $address) {
+			$this->outputLine('Found address ' . $address['email'] . ' with ID ' . $address['id']);
 		}
 	}
 
@@ -76,12 +68,8 @@ class TellmaticCommandController extends CommandController {
 	 */
 	public function setCodeCommand($addressId, $code) {
 		$setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $code);
-		$result = $this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
-		if ($result->getSuccess()) {
-			$this->outputLine('The code was set successfully.');
-		} else {
-			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
-		}
+		$this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
+		$this->outputLine('The code was set successfully.');
 	}
 
 	/**
@@ -161,12 +149,8 @@ class TellmaticCommandController extends CommandController {
 
 		$subscribeRequest->getMemo()->addLineToMemo('subscribeCommand of TellmaticCommandController');
 
-		$result = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-		if ($result->getSuccess()) {
-			$this->outputLine('Subscription was successful.');
-		} else {
-			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
-		}
+		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+		$this->outputLine('Subscription was successful.');
 	}
 
 	/**
@@ -214,11 +198,7 @@ class TellmaticCommandController extends CommandController {
 
 		$unsubscribeRequest->getMemo()->addLineToMemo('unsubscribeCommand of TellmaticCommandController');
 
-		$result = $this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
-		if ($result->getSuccess()) {
-			$this->outputLine('Unsubscription was successful.');
-		} else {
-			$this->outputLine('An error occured: ' . $result->getFailureReason() . ' (' . $result->getFailureCode() . ')');
-		}
+		$this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
+		$this->outputLine('Unsubscription was successful.');
 	}
 }

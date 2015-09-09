@@ -1,0 +1,9 @@
+<f:form.validationResults for="tellmatic" as="tellmaticResults">
+	<f:if condition="{tellmaticResults.errors}">
+		<f:if condition="{f:translate(id: 'error.property.tellmatic.{tellmaticResults.errors.0.code}')}">
+			<f:then><f:translate id="error.property.tellmatic.{tellmaticResults.errors.0.code}" /></f:then>
+			<f:else><f:translate id="error.property.tellmatic.unknown" /></f:else>
+		</f:if>
+		<f:if condition="{tellmaticResults.errors.0.code}"> ({tellmaticResults.errors.0.code})</f:if>
+	</f:if>
+</f:form.validationResults>

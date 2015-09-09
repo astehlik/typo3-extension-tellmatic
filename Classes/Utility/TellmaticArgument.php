@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic\Response;
+namespace Sto\Tellmatic\Utility;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -11,17 +11,18 @@ namespace Sto\Tellmatic\Tellmatic\Response;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use TYPO3\CMS\Extbase\Error\Result;
+
 /**
- * A generic response from the Tellmatic server.
+ * This class makes the validation results property of controller arguments accessible.
+ * This is required to pass on error messages in the subscribe controller.
  */
-class TellmaticResponse {
+class TellmaticArgument extends \TYPO3\CMS\Extbase\Mvc\Controller\Argument {
 
 	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
+	 * @param Result $validationResults
 	 */
-	public function processAdditionalResponseData($response) {
+	public function setValidationResults(Result $validationResults) {
+		$this->validationResults = $validationResults;
 	}
 }

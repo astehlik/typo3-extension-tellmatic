@@ -1,16 +1,16 @@
 {namespace tm=Sto\Tellmatic\ViewHelpers}
 
-<f:if condition="{requestSuccessful}">
-	<f:then>
-		<f:render section="updateForm" arguments="{_all}" />
-	</f:then>
+<f:if condition="{hasErrors}">
 	<f:else>
+		<f:render section="updateForm" arguments="{_all}" />
+	</f:else>
+	<f:then>
 		<h1>Ein Fehler ist aufgetreten</h1>
 
 		<p>Beim Laden Ihrer Daten ist ein Fehler aufgetreten:</p>
 
-		<p>{errorMessage}</p>
-	</f:else>
+		<p><f:render partial="Subscription/TellmaticError" arguments="{_all}" /></p>
+	</f:then>
 </f:if>
 
 <f:section name="updateForm">

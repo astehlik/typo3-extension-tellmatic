@@ -2,7 +2,8 @@
 	<f:if condition="{validationResults.flattenedErrors}">
 		<div class="alert alert-warning">
 			<strong>Fehler</strong><br /> Beim Verarbeiten Ihrer Daten ist leider ein Fehler
-			aufgetreten.
+			aufgetreten.<br />
+			<f:render partial="Subscription/TellmaticError" arguments="{_all}" />
 		</div>
 	</f:if>
 </f:form.validationResults>

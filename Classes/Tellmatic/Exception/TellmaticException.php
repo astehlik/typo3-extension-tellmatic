@@ -1,5 +1,5 @@
 <?php
-namespace Sto\Tellmatic\Tellmatic\Response;
+namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,16 +12,29 @@ namespace Sto\Tellmatic\Tellmatic\Response;
  *                                                                        */
 
 /**
- * A generic response from the Tellmatic server.
+ * Generic Tellmatic Exception.
  */
-class TellmaticResponse {
+class TellmaticException extends \Exception {
 
 	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
+	 * @var string
 	 */
-	public function processAdditionalResponseData($response) {
+	protected $failureCode;
+
+	/**
+	 * @param array $responseData
+	 * @param int $code
+	 * @param null $previous
+	 */
+	public function __construct(array $responseData, $code = 1441711143, $previous = NULL) {
+		$this->failureCode = $responseData['failure_code'];
+		parent::__construct($responseData['failure_reason'], $code, $previous);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getFailureCode() {
+		return $this->failureCode;
 	}
 }

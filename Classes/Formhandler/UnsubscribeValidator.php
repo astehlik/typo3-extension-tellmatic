@@ -11,6 +11,7 @@ namespace Sto\Tellmatic\Formhandler;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Exception\TellmaticException;
 use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
 use Sto\Tellmatic\Tellmatic\TellmaticClient;
@@ -35,19 +36,20 @@ class UnsubscribeValidator extends \Tx_Formhandler_AbstractValidator {
 			return FALSE;
 		}
 
-		$result = TRUE;
+		$exception = NULL;
+		$result = FALSE;
 
 		try {
-			$response = $this->sendUnsubscribeRequest();
-			if (!$response->getSuccess()) {
-				$errors['tellmatic'] = $response->getFailureCode();
-				$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $response->getFailureReason());
-				$result = FALSE;
-			}
+			$this->sendUnsubscribeRequest();
+			$result = TRUE;
+		} catch (TellmaticException $exception) {
+			$errors['tellmatic'] = $exception->getFailureCode();
 		} catch (\Exception $exception) {
 			$errors['tellmatic'] = 'unknown';
+		}
+
+		if (isset($exception)) {
 			$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
-			$result = FALSE;
 		}
 
 		return $result;

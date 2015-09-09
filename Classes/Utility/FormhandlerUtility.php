@@ -56,8 +56,9 @@ class FormhandlerUtility implements SingletonInterface {
 	/**
 	 * Builds and executes the subscribe request.
 	 *
+	 * @param array $gp
+	 * @param array $settings
 	 * @return TellmaticResponse
-	 * @throws \RuntimeException
 	 */
 	public function sendSubscribeRequest($gp, $settings) {
 

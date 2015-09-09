@@ -11,6 +11,8 @@ namespace Sto\Tellmatic\Tellmatic;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException;
+use Sto\Tellmatic\Tellmatic\Exception\TellmaticException;
 use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
 use Sto\Tellmatic\Tellmatic\Request\AddressCountRequest;
 use Sto\Tellmatic\Tellmatic\Request\AddressSearchRequest;
@@ -188,8 +190,8 @@ class TellmaticClient {
 	}
 
 	/**
-	 * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
-	 * @throws \RuntimeException
+	 * @return TellmaticResponse
+	 * @throws InvalidResponseException
 	 */
 	protected function doRequestAndGenerateResponse() {
 
@@ -202,21 +204,24 @@ class TellmaticClient {
 
 		$responseStatus = $httpResponse->getStatus();
 		if ($responseStatus !== 200) {
-			throw new \RuntimeException(sprintf('HTTP error code %d: %s (requested URL was: %s', $responseStatus, $httpResponse->getReasonPhrase(), $httpResponse->getEffectiveUrl()));
+			throw new InvalidResponseException(sprintf('HTTP error code %d: %s (requested URL was: %s', $responseStatus, $httpResponse->getReasonPhrase(), $httpResponse->getEffectiveUrl()));
 		}
 
 		$responseBody = $httpResponse->getBody();
 
 		$parsedResponse = json_decode($responseBody, TRUE);
 		if (!isset($parsedResponse)) {
-			throw new \RuntimeException('JSON parser error: ' . json_last_error() . 'The parsed string was: ' . $responseBody, 1377802585);
+			throw new InvalidResponseException('JSON parser error: ' . json_last_error() . 'The parsed string was: ' . $responseBody);
+		}
+
+		if (!isset($parsedResponse['success'])) {
+			throw new InvalidResponseException('The success property is missing in the response.');
 		}
 
 		if ($parsedResponse['success']) {
-			$tellmaticResponse->setRequestSuccessful();
 			$tellmaticResponse->processAdditionalResponseData($parsedResponse);
 		} else {
-			$tellmaticResponse->setFailureFromJsonResponse($parsedResponse);
+			$this->handleTellmaticError($parsedResponse);
 		}
 
 		// Reset HTTP request.
@@ -257,6 +262,34 @@ class TellmaticClient {
 		}
 
 		return $url;
+	}
+
+	/**
+	 * Throws an exception depending on the error code provided by Tellmatic.
+	 *
+	 * @param array $response
+	 * @throws Exception\TellmaticException
+	 * @throws InvalidResponseException
+	 * @throws \Exception
+	 */
+	protected function handleTellmaticError(array $response) {
+
+		if (empty($response['failure_code'])) {
+			throw new InvalidResponseException('The failure_code property is missing in the response.');
+		}
+
+		if (empty($response['failure_reason'])) {
+			throw new InvalidResponseException('The failure_reason property is missing in the response.');
+		}
+
+		$exceptionClass = 'Sto\\Tellmatic\\Tellmatic\\Exception\\' .
+			GeneralUtility::underscoredToUpperCamelCase($response['failure_code']) . 'Exception';
+
+		if (class_exists($exceptionClass)) {
+			throw new $exceptionClass($response);
+		} else {
+			throw new TellmaticException($response);
+		}
 	}
 
 	/**

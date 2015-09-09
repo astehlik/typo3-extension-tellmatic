@@ -1,5 +1,5 @@
-<f:if condition="{subscriptionSuccessful}">
-	<f:then>
+<f:if condition="{hasErrors}">
+	<f:else>
 		<h1>Anmeldung erfolgreich</h1>
 
 		<p>Ihre Anmeldung wurde erfolgreich bestätigt.</p>
@@ -10,12 +10,12 @@
 		<p>Sollten Sie keine E-Mail erhalten können Sie jederzeit eine
 			<f:link.action action="updateRequestForm">neue Bestätigungsmail
 				anfordern</f:link.action>.</p>
-	</f:then>
-	<f:else>
+	</f:else>
+	<f:then>
 		<h1>Ein Fehler ist aufgetreten</h1>
 
-		<p>Bei der Bestätigung Ihrer Anmeldung ist leider ein Fehler aufgetreten:</p>
+		<p>Bei der Übermittlung Ihrer Anmeldung ist leider ein Fehler aufgetreten:</p>
 
-		<p>{subscriptionError}</p>
-	</f:else>
+		<p><f:render partial="Subscription/TellmaticError" arguments="{_all}" /></p>
+	</f:then>
 </f:if>
