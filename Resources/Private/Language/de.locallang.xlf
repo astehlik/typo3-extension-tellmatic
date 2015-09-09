@@ -21,7 +21,7 @@
 			</trans-unit>
 			<trans-unit id="error.property.tellmatic.1441711344" xml:space="preserve">
 				<source>The remove server has provided an invalid response.</source>
-				<target>Der Server hat ein eine ungültige Antwort geliefert.</target>
+				<target>Der Server hat eine ungültige Antwort geliefert.</target>
 			</trans-unit>
 			<trans-unit id="error.property.tellmatic.1441711235" xml:space="preserve">
 				<source>The submitted data could not be validated by the server.</source>
