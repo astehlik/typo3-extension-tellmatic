@@ -139,7 +139,6 @@ class SubscriptionHandler {
 		$unsubscribeRequest->setQueueId($queueId);
 		$unsubscribeRequest->setNewsletterId($newsletterId);
 		$unsubscribeRequest->getMemo()->addLineToMemo($memo);
-		$unsubscribeRequest->getMemo()->appendDefaultMemo($this);
 		$this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 	}
 
@@ -420,7 +419,6 @@ class SubscriptionHandler {
 		$subscribeRequest->setDoNotSendEmails(TRUE);
 		$subscribeRequest->setOverrideAddressStatus($status);
 		$subscribeRequest->getMemo()->addLineToMemo($memo);
-		$subscribeRequest->getMemo()->appendDefaultMemo($this);
 		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 	}
 }
