@@ -11,6 +11,8 @@ namespace Sto\Tellmatic\Tests\Unit\Tellmatic;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Tellmatic\Exception\InvalidEmailException;
+use Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException;
 use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
 use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
@@ -21,6 +23,20 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Test for the Tellmatic client and the API.
  */
 class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
+
+	/**
+	 * Failure code when a page is not found during a HTTP request.
+	 *
+	 * @const
+	 */
+	const HTTP_STATUS_CODE_NOT_FOUND = 404;
+
+	/**
+	 * HTTP return code for successful requests.
+	 *
+	 * @const
+	 */
+	const HTTP_STATUS_CODE_OK = 200;
 
 	/**
 	 * @var string
@@ -84,7 +100,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		}
 
 		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_OK));
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($this->responseDataValid));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
@@ -97,7 +113,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$this->tellmaticClient->setHttpRequest($httpRequest);
 		$tellmaticResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 
-		$this->assertTrue($tellmaticResponse->getSuccess());
+		$this->assertNotNull($tellmaticResponse);
 	}
 
 	/**
@@ -114,7 +130,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		}
 
 		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_OK));
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
@@ -125,10 +141,14 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
 
 		$this->tellmaticClient->setHttpRequest($httpRequest);
-		$tellmaticResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 
-		$this->assertFalse($tellmaticResponse->getSuccess());
-		$this->assertEquals($expectedFailureCode, $tellmaticResponse->getFailureCode());
+		try {
+			$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+			$this->fail('The request did not throw the expected exception: ' . $expectedFailureCode);
+		} catch (\Exception $e) {
+			$exceptionType = get_class($e);
+			$this->assertEquals($expectedFailureCode, $exceptionType);
+		}
 	}
 
 	/**
@@ -139,28 +159,30 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		return array(
 			'validJsonInvalidData' => array(
 				'responseData' => json_encode(array('this', 'json', 'data', 'is', 'nonsense')),
-				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_INVALID_RESPONSE,
+				'expectedException' => InvalidResponseException::class,
 			),
 			'validJsonInvalidEmail' => array(
 				'responseData' => json_encode(array(
-					'failure_code' => TellmaticResponse::FAILURE_CODE_INVALID_EMAIL,
+					'success' => FALSE,
+					'failure_code' => 'invalid_email',
 					'failure_reason' => 'Invalid mail',
 				)),
-				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_INVALID_EMAIL,
+				'expectedException' => InvalidEmailException::class,
 			),
 			'validJsonInvalidFormData' => array(
 				'responseData' => json_encode(array(
-					'failure_code' => TellmaticResponse::FAILURE_CODE_INVALID_FORM_DATA,
-					'failure_reason' => 'Invalid mail',
+					'success' => FALSE,
+					'failure_code' => 'invalid_form_data',
+					'failure_reason' => 'Invalid form data',
 				)),
-				'expectedFailureCode' => TellmaticResponse::FAILURE_CODE_INVALID_FORM_DATA,
+				'expectedFailureCode' => \Sto\Tellmatic\Tellmatic\Exception\InvalidFormDataException::class,
 			),
 		);
 	}
 
 	/**
 	 * @test
-	 * @expectedException \RuntimeException
+	 * @expectedException \Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException
 	 */
 	public function sendSubscribeRequestThrowsExceptionOnErrorResponseCode() {
 
@@ -170,7 +192,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		}
 
 		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody', 'getReasonPhrase', 'getEffectiveUrl'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_NOT_FOUND));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_NOT_FOUND));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
 		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
@@ -185,7 +207,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 	/**
 	 * @test
-	 * @expectedException \RuntimeException
+	 * @expectedException \Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException
 	 */
 	public function sendSubscribeRequestThrowsExceptionOnInvalidResponse() {
 
@@ -195,7 +217,7 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		}
 
 		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(TellmaticResponse::HTTP_STATUS_CODE_OK));
+		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_OK));
 		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue('totally invalid response data'));
 
 		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */

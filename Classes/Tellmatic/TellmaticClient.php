@@ -82,7 +82,7 @@ class TellmaticClient {
 	/**
 	 * @param string $email
 	 * @return \Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse
-	 * @throws \RuntimeException
+	 * @throws \InvalidArgumentException
 	 */
 	public function getSubscribeState($email) {
 
@@ -90,7 +90,7 @@ class TellmaticClient {
 		$this->httpRequest->setUrl($this->getUrl('getSubscribeState'));
 
 		if (!GeneralUtility::validEmail($email)) {
-			throw new \RuntimeException('The provided email address is invalid');
+			throw new \InvalidArgumentException('The provided email address is invalid');
 		}
 
 		$this->responseClass = SubscribeStateResponse::class;
