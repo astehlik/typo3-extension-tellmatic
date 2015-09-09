@@ -12,9 +12,9 @@ namespace Sto\Tellmatic\Controller;
  *                                                                        */
 
 use Sto\Tellmatic\Command\AuthCodeCommandController;
+use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Utility\Exception\InvalidAuthCodeException;
-use Sto\Tellmatic\Tellmatic\Request\SubscribeRequest;
 use Sto\Tellmatic\Utility\Exception\UpdateInvalidStateException;
 use Sto\Tellmatic\Utility\SubscriptionHandler;
 use Sto\Tellmatic\Utility\TellmaticArgument;
@@ -42,10 +42,22 @@ class SubscribeController extends ActionController {
 	protected $authCodeRepository;
 
 	/**
+	 * @var \TYPO3\CMS\Core\Log\Logger
+	 */
+	protected $logger;
+
+	/**
 	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
 	 * @inject
 	 */
 	protected $tellmaticClient;
+
+	/**
+	 * @param \TYPO3\CMS\Core\Log\LogManager $logManager
+	 */
+	public function injectLogManager(\TYPO3\CMS\Core\Log\LogManager $logManager) {
+		$this->logger = $logManager->getLogger(__CLASS__);
+	}
 
 	/**
 	 * When the submitted auth code is valid the email state will be set to "confirmed"
@@ -244,38 +256,6 @@ class SubscribeController extends ActionController {
 	}
 
 	/**
-	 * Initializes the tellmatic argument validation error based on the given Exception.
-	 *
-	 * @param \Exception $exception
-	 */
-	protected function handleException(\Exception $exception) {
-
-		/** @noinspection PhpMethodParametersCountMismatchInspection */
-		$tellmaticArgument = $this->objectManager->get(TellmaticArgument::class, 'tellmatic', 'Text');
-		$this->arguments->addArgument($tellmaticArgument);
-
-		$argumentValidationResults = $this->objectManager->get(\TYPO3\CMS\Extbase\Error\Result::class);
-		$argumentValidationResults->addError(new ValidationError($exception->getMessage(), $exception->getCode()));
-		$tellmaticArgument->setValidationResults($argumentValidationResults);
-
-		if (
-			$this->request instanceof \TYPO3\CMS\Extbase\Mvc\Web\Request
-			&& $this->request->getReferringRequest() !== NULL
-		) {
-			$referringRequest = $this->request->getReferringRequest();
-			if (
-				$referringRequest->getControllerActionName() !== $this->request->getControllerActionName()
-				|| $referringRequest->getControllerName() !== $this->request->getControllerName()
-			) {
-				$this->errorAction();
-			}
-		}
-
-		$this->view->assign('hasErrors', TRUE);
-		$this->request->setOriginalRequestMappingResults($this->arguments->getValidationResults());
-	}
-
-	/**
 	 * Displays a form where the user can enter his email address for requesting
 	 * links for updating / removing his subscription.
 	 */
@@ -358,5 +338,41 @@ class SubscribeController extends ActionController {
 			throw new InvalidAuthCodeException();
 		}
 		return $authCodeObject;
+	}
+
+	/**
+	 * Initializes the tellmatic argument validation error based on the given Exception.
+	 *
+	 * @param \Exception $exception
+	 */
+	protected function handleException(\Exception $exception) {
+
+		if (isset($this->logger)) {
+			$this->logger->critical('An error has occured during tellmatic subscription: ' . $exception->getMessage() . LF . $exception->getTraceAsString());
+		}
+
+		/** @noinspection PhpMethodParametersCountMismatchInspection */
+		$tellmaticArgument = $this->objectManager->get(TellmaticArgument::class, 'tellmatic', 'Text');
+		$this->arguments->addArgument($tellmaticArgument);
+
+		$argumentValidationResults = $this->objectManager->get(\TYPO3\CMS\Extbase\Error\Result::class);
+		$argumentValidationResults->addError(new ValidationError($exception->getMessage(), $exception->getCode()));
+		$tellmaticArgument->setValidationResults($argumentValidationResults);
+
+		if (
+			$this->request instanceof \TYPO3\CMS\Extbase\Mvc\Web\Request
+			&& $this->request->getReferringRequest() !== NULL
+		) {
+			$referringRequest = $this->request->getReferringRequest();
+			if (
+				$referringRequest->getControllerActionName() !== $this->request->getControllerActionName()
+				|| $referringRequest->getControllerName() !== $this->request->getControllerName()
+			) {
+				$this->errorAction();
+			}
+		}
+
+		$this->view->assign('hasErrors', TRUE);
+		$this->request->setOriginalRequestMappingResults($this->arguments->getValidationResults());
 	}
 }
