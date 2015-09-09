@@ -3,12 +3,9 @@
 <f:if condition="{hasErrors}">
 	<f:else>
 
-		<h1>Newsletter abbestellen</h1>
+		<h2>Newsletter abbestellen</h2>
 
-		<p>Sie möchten unseren Newsletter nicht mehr erhalten?</p>
-
-		<p>Dann senden Sie bitte einfach das folgende Formular ab, dann werden Ihre Daten aus
-			unserer Datenbank entfernt.</p>
+		<p>Um künftig keine Newsletter mehr von uns zu erhalten, senden Sie bitte das folgende Formular ab.</p>
 
 		<f:form action="unsubscribe" method="post" enctype="multipart/form-data">
 
@@ -38,11 +35,13 @@
 	</f:else>
 	<f:then>
 		<f:else>
-			<h1>Ein Fehler ist aufgetreten</h1>
+			<h2>Ein Fehler ist aufgetreten</h2>
 
 			<p>Beim Laden Ihrer Daten ist ein Fehler aufgetreten:</p>
 
-			<p><f:render partial="Subscription/TellmaticError" arguments="{_all}" /></p>
+			<p>
+				<f:render partial="Subscription/TellmaticError" arguments="{_all}" />
+			</p>
 		</f:else>
 	</f:then>
 </f:if>

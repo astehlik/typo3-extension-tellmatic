@@ -1,18 +1,15 @@
 <f:if condition="{hasErrors}">
 	<f:else>
-		<h1>Anmeldung erfolgreich</h1>
+		<h2>Anfrage erhalten</h2>
 
-		<p>Ihre Anmeldung wurde erfolgreich bestätigt.</p>
+		<p>Wir haben eine E-Mail zur Bestätigung Ihrer Newsletteranmeldung an Sie versendet.</p>
 
-		<p>Um Mißbrauch zu verhinden haben wir eine E-Mail an Sie versendet, in der Sie einen Link
-			finden mit dem Sie Ihre Anmeldung bestätigen können.</p>
-
-		<p>Sollten Sie keine E-Mail erhalten können Sie jederzeit eine
+		<p>Sollten Sie keine E-Mail erhalten, können Sie jederzeit eine
 			<f:link.action action="updateRequestForm">neue Bestätigungsmail
 				anfordern</f:link.action>.</p>
 	</f:else>
 	<f:then>
-		<h1>Ein Fehler ist aufgetreten</h1>
+		<h2>Ein Fehler ist aufgetreten</h2>
 
 		<p>Bei der Übermittlung Ihrer Anmeldung ist leider ein Fehler aufgetreten:</p>
 

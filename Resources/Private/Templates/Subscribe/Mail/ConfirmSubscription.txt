@@ -1,8 +1,8 @@
 
-Vielen Dank für Ihre Anmeldung an unserem Newsletter.
+Wir freuen uns, dass Sie sich für unseren Newsletter interessieren.
 
-Um Ihre Anmeldung zu bestätigen, benutzen Sie bitte folgenden Link:
+Mit dem folgenden Link können Sie Ihre Anmeldung bestätigen.
 
 {actionUrl}
 
-Sie können jederzeit Ihre Daten ändern oder den Newsletter abbestellen.
+Vielen Dank.

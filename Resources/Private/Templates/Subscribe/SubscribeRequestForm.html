@@ -2,19 +2,21 @@
 
 <div class="tx-tellmatic tx-tellmatic-subscribe tx-tellmatic-subscribe-subscriberequestform">
 
-	<h1>Newsletteranmeldung</h1>
+	<h2>Anmeldung</h2>
 
 	<p>Bitte füllen Sie das folgende Formular aus, um sich für unseren Newsletter anzumelden.</p>
 
-	<p><f:link.action action="updateRequestForm">Hier können Sie</f:link.action> Ihre Daten
-		aktualisieren oder den Newsletter abzubestellen.</p>
+	<p>Alternativ können Sie Ihre <f:link.action action="updateRequestForm">Daten
+		aktualisieren</f:link.action> oder den <f:link.action action="updateRequestForm">Newsletter
+		abbestellen</f:link.action>.</p>
 
 	<f:form action="subscribeRequest" method="post" enctype="multipart/form-data">
 
 		<f:render partial="Subscription/Errors" arguments="{_all}" />
 
 		<tm:form.validatedControlGroup for="email">
-			<label class="control-label" for="email">E-Mail <span class="form-required-label" title="Pflichtfeld">*</span></label>
+			<label class="control-label" for="email">E-Mail
+				<span class="form-required-label" title="Pflichtfeld">*</span></label>
 			<tm:form.inlineHelpOrErrors />
 			<f:form.textfield class="form-control" id="email" type="text" name="email" />
 		</tm:form.validatedControlGroup>
@@ -50,11 +52,8 @@
 				<div class="checkbox">
 					<label>
 						<f:form.checkbox name="acceptConditions" value="true" checked="{acceptConditions}" />
-						Ich stimme den
-						<tm:link.typolink parameter="{settings.privacyPolicyLink}">
-							Datenschutzbestimmungen
-						</tm:link.typolink>
-						zu. </label>
+						Ich stimme den <tm:link.typolink parameter="{settings.privacyPolicyLink}">
+						Datenschutzbestimmungen </tm:link.typolink> zu. </label>
 				</div>
 			</tm:form.validatedControlGroup>
 		</f:if>
