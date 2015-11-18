@@ -59,12 +59,12 @@ class AuthCodeCommandController extends CommandController {
 	/**
 	 * Refresh all auth codes.
 	 *
-	 * @param int $itemCountPerRun The number of items that are added to the queue in one run.
-	 * @param string $refreshInterval
-	 * @param bool $forceNewRun
+	 * @param int $itemCountPerRun The number of auth codes that are refreshed during one run.
+	 * @param string $refreshInterval The time betweeen a new synchronization run.
+	 * @param bool $forceNewRun Ignore refresh interval and force the start of a new run.
 	 * @throws \Exception
 	 */
-	public function refreshCodesCommand($itemCountPerRun = 2, $refreshInterval = '2 minutes', $forceNewRun = FALSE) {
+	public function refreshCodesCommand($itemCountPerRun = 20, $refreshInterval = '1 day', $forceNewRun = FALSE) {
 
 		/** @var OffsetIterator $offsetIterator */
 		$offsetIterator = $this->registry->get(__CLASS__, 'refreshCodesAddressOffset', $this->objectManager->get(OffsetIterator::class));
@@ -136,7 +136,8 @@ class AuthCodeCommandController extends CommandController {
 		$addressSearchRequest->setOffset($offset);
 		$addressSearchRequest->setLimit($limit);
 
-		$this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
+		$response = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
+		return $response->getAddresses();
 	}
 
 	/**
