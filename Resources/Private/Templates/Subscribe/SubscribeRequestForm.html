@@ -15,35 +15,17 @@
 		<f:render partial="Subscription/Errors" arguments="{_all}" />
 
 		<tm:form.validatedControlGroup for="email">
-			<label class="control-label" for="email">E-Mail
+			<label class="control-label" for="tx-tellmatic-subscribe-request-email">E-Mail
 				<span class="form-required-label" title="Pflichtfeld">*</span></label>
 			<tm:form.inlineHelpOrErrors />
-			<f:form.textfield class="form-control" id="email" type="text" name="email" />
+			<f:form.textfield class="form-control" id="tx-tellmatic-subscribe-request-email" type="text" name="email" />
 		</tm:form.validatedControlGroup>
 
-		<tm:form.validatedControlGroup for="additionalData.f0">
-			<label class="control-label" for="salutation">Anrede</label>
-			<tm:form.inlineHelpOrErrors />
-			<f:form.select id="salutation" class="form-control" name="additionalData[f0]" options="{salutationOptions}" />
-		</tm:form.validatedControlGroup>
-
-		<tm:form.validatedControlGroup for="additionalData.f1">
-			<label class="control-label" for="firstname">Vorname</label>
-			<tm:form.inlineHelpOrErrors />
-			<f:form.textfield id="firstname" class="form-control" name="additionalData[f1]" />
-		</tm:form.validatedControlGroup>
-
-		<tm:form.validatedControlGroup for="additionalData.f2">
-			<label class="control-label" for="lastname">Nachname</label>
-			<tm:form.inlineHelpOrErrors />
-			<f:form.textfield id="lastname" class="form-control" name="additionalData[f2]" />
-		</tm:form.validatedControlGroup>
-
-		<tm:form.validatedControlGroup for="additionalData.f3">
-			<label class="control-label" for="lastname">Firma</label>
-			<tm:form.inlineHelpOrErrors />
-			<f:form.textfield id="lastname" class="form-control" name="additionalData[f3]" />
-		</tm:form.validatedControlGroup>
+		<f:for each="{settings.additionalFields}" as="fieldSettings" key="fieldName">
+			<f:if condition="{fieldSettings.enabled}">
+				<f:render partial="Subscription/Form/{fieldSettings.type}Field" arguments="{fieldName: fieldName}" />
+			</f:if>
+		</f:for>
 
 		<f:if condition="{settings.privacyPolicy.checkRequired}">
 			<tm:form.validatedControlGroup for="acceptConditions">

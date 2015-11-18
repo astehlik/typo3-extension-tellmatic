@@ -2,16 +2,9 @@ plugin.tx_tellmatic {
 
 	settings {
 
-		additionalFieldValidators {
-			f0 {
-				10 {
-					type = RegularExpression
-					options.regularExpression = /^$|^Herr|Frau/
-				}
-			}
-		}
-
-		salutationOptions {
+		additionalFields.f0.enabled = 1
+		additionalFields.f0.type = Select
+		additionalFields.f0.options {
 			10 {
 				label =
 			}
@@ -23,6 +16,26 @@ plugin.tx_tellmatic {
 			}
 		}
 
+		additionalFields.f1.enabled = 1
+		additionalFields.f1.type = Input
+
+		additionalFields.f2.enabled = 1
+		additionalFields.f2.type = Input
+
+		additionalFields.f3.enabled = 1
+		additionalFields.f3.type = Input
+
+		additionalFields.f4.enabled = 0
+
+
+		additionalFieldValidators {
+			f0 {
+				10 {
+					type = RegularExpression
+					options.regularExpression = /^$|^Herr|Frau/
+				}
+			}
+		}
 
 		privacyPolicy {
 			checkRequired = 1

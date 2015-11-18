@@ -1,0 +1,7 @@
+{namespace tm=Sto\Tellmatic\ViewHelpers}
+
+<tm:form.validatedControlGroup for="additionalData.{fieldName}">
+	<label class="control-label" for="tx-tellmatic-subscribe-request-{fieldName}"><f:translate id="subscribe_label_{fieldName}" /></label>
+	<tm:form.inlineHelpOrErrors />
+	<f:form.select id="tx-tellmatic-subscribe-request-{fieldName}" class="form-control" name="additionalData[{fieldName}]" options="{tm:form.selectOptions(fieldName: fieldName)}" />
+</tm:form.validatedControlGroup>

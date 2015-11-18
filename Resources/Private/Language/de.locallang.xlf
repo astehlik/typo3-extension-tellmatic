@@ -51,6 +51,26 @@
 				<source>The communation with the remove server has failed.</source>
 				<target>Die Kommunikation mit dem Server ist fehlgeschlagen.</target>
 			</trans-unit>
+			<trans-unit id="subscribe_label_f0" xml:space="preserve">
+				<source>Salutation</source>
+				<target>Anrede</target>
+			</trans-unit>
+			<trans-unit id="subscribe_label_f1" xml:space="preserve">
+				<source>Firstname</source>
+				<target>Vorname</target>
+			</trans-unit>
+			<trans-unit id="subscribe_label_f2" xml:space="preserve">
+				<source>Lastname</source>
+				<target>Nachname</target>
+			</trans-unit>
+			<trans-unit id="subscribe_label_f3" xml:space="preserve">
+				<source>Company</source>
+				<target>Firma</target>
+			</trans-unit>
+			<trans-unit id="subscribe_label_f4" xml:space="preserve">
+				<source>Zip</source>
+				<target>PLZ</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

@@ -119,8 +119,6 @@ class SubscribeController extends ActionController {
 	 */
 	public function subscribeRequestFormAction() {
 
-		$this->assignSalutationOptionsInView();
-
 		// Handle validation errors.
 		if (
 			$this->controllerContext->getRequest()->getOriginalRequest() !== NULL
@@ -161,7 +159,6 @@ class SubscribeController extends ActionController {
 			$this->handleException($e);
 		}
 
-		$this->assignSalutationOptionsInView();
 		$this->view->assign('confirmRemoval', $this->getSubmittedValueOrDefault('confirmRemoval', TRUE));
 	}
 
@@ -179,7 +176,6 @@ class SubscribeController extends ActionController {
 			$this->handleException($e);
 		}
 
-		$this->assignSalutationOptionsInView();
 		$this->view->assignMultiple(array(
 			'confirmRemoval' => $this->getSubmittedValueOrDefault('confirmRemoval', TRUE),
 			'historyId' => GeneralUtility::_GET('h_id'),
@@ -246,8 +242,6 @@ class SubscribeController extends ActionController {
 		} catch (\Exception $e) {
 			$this->handleException($e);
 		}
-
-		$this->assignSalutationOptionsInView();
 	}
 
 	/**
@@ -271,25 +265,6 @@ class SubscribeController extends ActionController {
 	 * links for updating / removing his subscription.
 	 */
 	public function updateRequestFormAction() {
-	}
-
-	/**
-	 * Initializes the salutations options in the view.
-	 */
-	protected function assignSalutationOptionsInView() {
-
-		if (empty($this->settings['salutationOptions'])) {
-			return;
-		}
-
-		$options = array();
-		foreach ($this->settings['salutationOptions'] as $option) {
-			$label = $option['label'];
-			$value = isset($option['value']) ? $option['value'] : $label;
-			$options[$value] = $label;
-		}
-
-		$this->view->assign('salutationOptions', $options);
 	}
 
 	/**

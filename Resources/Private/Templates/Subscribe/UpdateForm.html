@@ -32,29 +32,11 @@
 			<f:form.textfield class="form-control" id="email" type="text" name="email" value="{email}" />
 		</tm:form.validatedControlGroup>
 
-		<tm:form.validatedControlGroup for="additionalData.f0">
-			<tm:form.inlineHelpOrErrors />
-			<label class="control-label" for="salutation">Anrede</label>
-			<f:form.select id="salutation" class="form-control" name="additionalData[f0]" options="{salutationOptions}" value="{f0}" />
-		</tm:form.validatedControlGroup>
-
-		<tm:form.validatedControlGroup for="additionalData.f1">
-			<tm:form.inlineHelpOrErrors />
-			<label class="control-label" for="firstname">Vorname</label>
-			<f:form.textfield id="firstname" class="form-control" name="additionalData[f1]" value="{f1}" />
-		</tm:form.validatedControlGroup>
-
-		<tm:form.validatedControlGroup for="additionalData.f2">
-			<tm:form.inlineHelpOrErrors />
-			<label class="control-label" for="lastname">Nachname</label>
-			<f:form.textfield id="lastname" class="form-control" name="additionalData[f2]" value="{f2}" />
-		</tm:form.validatedControlGroup>
-
-		<tm:form.validatedControlGroup for="additionalData.f3">
-			<tm:form.inlineHelpOrErrors />
-			<label class="control-label" for="lastname">Firma</label>
-			<f:form.textfield id="lastname" class="form-control" name="additionalData[f3]" value="{f3}" />
-		</tm:form.validatedControlGroup>
+		<f:for each="{settings.additionalFields}" as="fieldSettings" key="fieldName">
+			<f:if condition="{fieldSettings.enabled}">
+				<f:render partial="Subscription/Form/{fieldSettings.type}Field" arguments="{fieldName: fieldName}" />
+			</f:if>
+		</f:for>
 
 		<f:form.hidden name="authCode" value="{authCode.authCode}" />
 
