@@ -45,15 +45,18 @@
 			<f:form.textfield id="lastname" class="form-control" name="additionalData[f3]" />
 		</tm:form.validatedControlGroup>
 
-		<f:if condition="{settings.privacyPolicyLink}">
+		<f:if condition="{settings.privacyPolicy.checkRequired}">
 			<tm:form.validatedControlGroup for="acceptConditions">
 				<label class="control-label">Datenschutz</label>
 				<tm:form.inlineHelpOrErrors />
 				<div class="checkbox">
 					<label>
 						<f:form.checkbox name="acceptConditions" value="true" checked="{acceptConditions}" />
-						Ich stimme den <tm:link.typolink parameter="{settings.privacyPolicyLink}">
-						Datenschutzbestimmungen </tm:link.typolink> zu. </label>
+						<f:if condition="{settings.privacyPolicy.linkParameter}">
+							<f:then>Ich stimme den <tm:link.typolink parameter="{settings.privacyPolicy.linkParameter}">Datenschutzbestimmungen</tm:link.typolink> zu.</f:then>
+							<f:else>Ich stimme den Datenschutzbestimmungen zu.</f:else>
+						</f:if>
+					</label>
 				</div>
 			</tm:form.validatedControlGroup>
 		</f:if>

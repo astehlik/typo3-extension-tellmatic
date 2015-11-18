@@ -23,7 +23,11 @@ plugin.tx_tellmatic {
 			}
 		}
 
-		privacyPolicyLink = 65 _blank
+
+		privacyPolicy {
+			checkRequired = 1
+			linkParameter = 334 _blank
+		}
 
 		authCodeUrlSpeaking = 1
 		authCodeUrlTempate {

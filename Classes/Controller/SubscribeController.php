@@ -88,13 +88,13 @@ class SubscribeController extends ActionController {
 	 * @param boolean $acceptConditions
 	 * @param array $additionalData
 	 * @validate $email NotEmpty, EmailAddress
-	 * @validate $acceptConditions Boolean(is="true")
-	 * @validate $additionalData Sto\Tellmatic\Validation\AdditionalFieldValidator
+	 * @validate $acceptConditions \Sto\Tellmatic\Validation\AcceptConditionsValidator
+	 * @validate $additionalData \Sto\Tellmatic\Validation\AdditionalFieldValidator
 	 */
 	public function subscribeRequestAction(
 		$email,
 		/** @noinspection PhpUnusedParameterInspection */
-		$acceptConditions,
+		$acceptConditions = FALSE,
 		array $additionalData = array()
 	) {
 
@@ -122,7 +122,10 @@ class SubscribeController extends ActionController {
 		$this->assignSalutationOptionsInView();
 
 		// Handle validation errors.
-		if ($this->controllerContext->getRequest()->getOriginalRequest() !== NULL) {
+		if (
+			$this->controllerContext->getRequest()->getOriginalRequest() !== NULL
+			&& $this->controllerContext->getRequest()->getOriginalRequest()->hasArgument('acceptConditions')
+		) {
 			$this->view->assign('acceptConditions', $this->controllerContext->getRequest()->getOriginalRequest()->getArgument('acceptConditions'));
 		}
 	}
