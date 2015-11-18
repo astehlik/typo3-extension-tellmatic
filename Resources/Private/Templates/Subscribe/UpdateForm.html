@@ -34,7 +34,7 @@
 
 		<f:for each="{settings.additionalFields}" as="fieldSettings" key="fieldName">
 			<f:if condition="{fieldSettings.enabled}">
-				<f:render partial="Subscription/Form/{fieldSettings.type}Field" arguments="{fieldName: fieldName}" />
+				<f:render partial="Subscription/Form/{fieldSettings.type}Field" arguments="{fieldName: fieldName, fieldSettings: fieldSettings}" />
 			</f:if>
 		</f:for>
 

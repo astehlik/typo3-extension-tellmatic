@@ -233,12 +233,16 @@ class SubscribeController extends ActionController {
 
 			$this->view->assign('email', $this->getSubmittedValueOrDefault('email', $authCode->getIdentifier()));
 
-			$addressData = $subscribeStateResponse->getAddressData();
-			foreach (SubscribeRequest::getAllowedAdditionalFields() as $field => $unused) {
-				if (!empty($addressData[$field])) {
-					$this->view->assign($field, $this->getSubmittedValueOrDefault('additionalData.' . $field, $addressData[$field]));
+			if (!empty($this->settings['additionalFields']) && is_array($this->settings['additionalFields'])) {
+				$addressData = $subscribeStateResponse->getAddressData();
+				foreach ($this->settings['additionalFields'] as $fieldName => &$fieldSettings) {
+					if (!empty($addressData[$fieldName])) {
+						$fieldSettings['value'] = $this->getSubmittedValueOrDefault('additionalData.' . $fieldName, $addressData[$fieldName]);
+					}
 				}
+				$this->view->assign('settings', $this->settings);
 			}
+
 		} catch (\Exception $e) {
 			$this->handleException($e);
 		}

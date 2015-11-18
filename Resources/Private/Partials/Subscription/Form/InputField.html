@@ -3,5 +3,5 @@
 <tm:form.validatedControlGroup for="additionalData.{fieldName}">
 	<label class="control-label" for="tx-tellmatic-subscribe-request-{fieldName}"><f:translate id="subscribe_label_{fieldName}" /></label>
 	<tm:form.inlineHelpOrErrors />
-	<f:form.textfield id="tx-tellmatic-subscribe-request-{fieldName}" class="form-control" name="additionalData[{fieldName}]" />
+	<f:form.textfield id="tx-tellmatic-subscribe-request-{fieldName}" class="form-control" name="additionalData[{fieldName}]" value="{fieldSettings.value}" />
 </tm:form.validatedControlGroup>
