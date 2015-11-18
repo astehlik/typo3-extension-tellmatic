@@ -78,7 +78,7 @@ class SubscriptionHandler {
 	}
 
 	/**
-	 * Processes the subsription confirmation.
+	 * Processes the subscription confirmation.
 	 *
 	 * @param string $email
 	 * @param string $memo
@@ -95,6 +95,14 @@ class SubscriptionHandler {
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
 		$addressData = $subscribeStateResponse->getAddressData();
 		$this->sendSubscribeRequest($email, $addressData, $memo, 'confirmed');
+
+		if (!empty($this->settings['mail']['subscribeSuccess'])) {
+			$subject = 'Ihre Newsletteranmeldung';
+			$mailview = $this->getMailView('SubscribeSuccess');
+			$mailview->assign('email', $email);
+			$mailtext = $mailview->render();
+			$this->sendMail($email, $subject, $mailtext);
+		}
 	}
 
 	/**

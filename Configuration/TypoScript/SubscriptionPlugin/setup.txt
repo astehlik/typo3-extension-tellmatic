@@ -51,6 +51,7 @@ plugin.tx_tellmatic {
 
 		mail {
 			from = newsletter@intera.de
+			subscribeSuccess = 0
 		}
 	}
 }
