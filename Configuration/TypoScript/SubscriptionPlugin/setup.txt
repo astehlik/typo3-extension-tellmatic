@@ -39,7 +39,7 @@ plugin.tx_tellmatic {
 
 		privacyPolicy {
 			checkRequired = 1
-			linkParameter = 334 _blank
+			linkParameter =
 		}
 
 		authCodeUrlSpeaking = 1
