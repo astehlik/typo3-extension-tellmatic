@@ -71,6 +71,22 @@
 				<source>Zip</source>
 				<target>PLZ</target>
 			</trans-unit>
+			<trans-unit id="subscribe_label_privacy_policy" xml:space="preserve">
+				<source>I accept the privacy policy.</source>
+				<target>Ich stimme den Datenschutzbestimmungen zu.</target>
+			</trans-unit>
+			<trans-unit id="subscribe_label_privacy_policy_with_link" xml:space="preserve">
+				<source>I accept the %s.</source>
+				<target>Ich stimme den %s zu.</target>
+			</trans-unit>
+			<trans-unit id="subscribe_label_privacy_policy_link_text" xml:space="preserve">
+				<source>privacy policy.</source>
+				<target>Datenschutzbestimmungen</target>
+			</trans-unit>
+			<trans-unit id="subscribe_request_form_slogan" xml:space="preserve">
+				<source>Please fill out this form to subscribe to our newsletter.</source>
+				<target>Bitte füllen Sie das folgende Formular aus, um sich für unseren Newsletter anzumelden.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

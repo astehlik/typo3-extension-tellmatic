@@ -4,7 +4,7 @@
 
 	<h2>Anmeldung</h2>
 
-	<p>Bitte füllen Sie das folgende Formular aus, um sich für unseren Newsletter anzumelden.</p>
+	<p><f:translate id="subscribe_request_form_slogan" /></p>
 
 	<p>Alternativ können Sie Ihre <f:link.action action="updateRequestForm">Daten
 		aktualisieren</f:link.action> oder den <f:link.action action="updateRequestForm">Newsletter
@@ -29,14 +29,17 @@
 
 		<f:if condition="{settings.privacyPolicy.checkRequired}">
 			<tm:form.validatedControlGroup for="acceptConditions">
-				<label class="control-label">Datenschutz</label>
+				<label class="control-label">
+					Datenschutz
+					<span class="form-required-label" title="Pflichtfeld">*</span>
+				</label>
 				<tm:form.inlineHelpOrErrors />
 				<div class="checkbox">
 					<label>
 						<f:form.checkbox name="acceptConditions" value="true" checked="{acceptConditions}" />
 						<f:if condition="{settings.privacyPolicy.linkParameter}">
-							<f:then>Ich stimme den <tm:link.typolink parameter="{settings.privacyPolicy.linkParameter}">Datenschutzbestimmungen</tm:link.typolink> zu.</f:then>
-							<f:else>Ich stimme den Datenschutzbestimmungen zu.</f:else>
+							<f:then><f:translate id="subscribe_label_privacy_policy_with_link" arguments="{0: '{f:render(section: \'privacyPolicyLink\', arguments: \'{_all}\')}' }" /></f:then>
+							<f:else><f:translate id="subscribe_label_privacy_policy" /></f:else>
 						</f:if>
 					</label>
 				</div>
@@ -50,3 +53,7 @@
 	</f:form>
 
 </div>
+
+<f:section name="privacyPolicyLink">
+	<tm:link.typolink parameter="{settings.privacyPolicy.linkParameter}"><f:translate id="subscribe_label_privacy_policy_link_text" /></tm:link.typolink>
+</f:section>
