@@ -235,6 +235,19 @@ class SubscriptionHandler {
 	}
 
 	/**
+	 * Reads the mail template path from the settings.
+	 *
+	 * @return string
+	 */
+	protected function getMailTemplatePath() {
+		$templatePath = GeneralUtility::getFileAbsFileName($this->settings['mail']['templatePath']);
+		if (empty($templatePath)) {
+			throw new \InvalidArgumentException('The configured mail tempalte directory is invalid: ' . $this->settings['mail']['templatePath']);
+		}
+		return rtrim($templatePath, '/') . '/';
+	}
+
+	/**
 	 * Returns a template view instance that can be used for email generation.
 	 *
 	 * @param string $mailTemplate
@@ -243,7 +256,7 @@ class SubscriptionHandler {
 	protected function getMailView($mailTemplate) {
 		/** @var TemplateView $view */
 		$view = clone($this->view);
-		$view->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:tellmatic/Resources/Private/Templates/Subscribe/Mail/' . $mailTemplate . '.txt'));
+		$view->setTemplatePathAndFilename($this->getMailTemplatePath() . $mailTemplate . '.txt');
 		return $view;
 	}
 
