@@ -409,7 +409,8 @@ class SubscriptionHandler {
 	 */
 	protected function sendMail($email, $subject, $mailtext) {
 		$mail = $this->objectManager->get(MailMessage::class);
-		$mail->setFrom($this->settings['mail']['from']);
+		$fromName = !empty($this->settings['mail']['fromName']) ? $this->settings['mail']['fromName'] : NULL;
+		$mail->setFrom($this->settings['mail']['from'], $fromName);
 		$mail->setTo($email);
 		$mail->setSubject($subject);
 		$mail->addPart($mailtext);

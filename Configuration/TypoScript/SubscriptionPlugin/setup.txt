@@ -51,6 +51,7 @@ plugin.tx_tellmatic {
 
 		mail {
 			from = newsletter@intera.de
+			fromName =
 			subscribeSuccess = 0
 			templatePath = EXT:tellmatic/Resources/Private/Templates/Subscribe/Mail/
 		}
