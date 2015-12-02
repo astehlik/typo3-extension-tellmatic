@@ -66,6 +66,12 @@
 			<trans-unit id="subscribe_request_form_slogan" xml:space="preserve">
 				<source>Please fill out this form to subscribe to our newsletter.</source>
 			</trans-unit>
+			<trans-unit id="update_request_form_header" xml:space="preserve">
+				<source>Unsubscribe or change data</source>
+			</trans-unit>
+			<trans-unit id="update_request_form_infotext" xml:space="preserve">
+				<source>Please enter your email address and submit the form. You will receive an email with further instructions..</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

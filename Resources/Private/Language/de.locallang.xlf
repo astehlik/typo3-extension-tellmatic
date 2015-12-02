@@ -87,6 +87,14 @@
 				<source>Please fill out this form to subscribe to our newsletter.</source>
 				<target>Bitte füllen Sie das folgende Formular aus, um sich für unseren Newsletter anzumelden.</target>
 			</trans-unit>
+			<trans-unit id="update_request_form_header" xml:space="preserve">
+				<source>Unsubscribe or change data</source>
+				<target>Abbestellen oder Daten ändern</target>
+			</trans-unit>
+			<trans-unit id="update_request_form_infotext" xml:space="preserve">
+				<source>Please enter your email address and submit the form. You will receive an email with further instructions..</source>
+				<target>Bitte geben Sie Ihre E-Mail-Adresse in das folgende Feld ein. Sie erhalten dann eine E-Mail mit weiteren Instruktionen.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
