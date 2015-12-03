@@ -40,6 +40,8 @@
 
 		<f:form.hidden name="authCode" value="{authCode.authCode}" />
 
+		<f:render partial="Subscription/RequiredFieldsHint" arguments="{_all}" />
+
 		<div class="form-group">
 			<f:form.submit class="btn btn-primary" value="Absenden" />
 		</div>
