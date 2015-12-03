@@ -92,8 +92,10 @@
 				<target>Abbestellen oder Daten ändern</target>
 			</trans-unit>
 			<trans-unit id="update_request_form_infotext" xml:space="preserve">
-				<source>Please enter your email address and submit the form. You will receive an email with further instructions..</source>
-				<target>Bitte geben Sie Ihre E-Mail-Adresse in das folgende Feld ein. Sie erhalten dann eine E-Mail mit weiteren Instruktionen.</target>
+				<source>Please enter the email address that you used to subscribe to the newsletter and submit the form.
+					You will receive an email with further instructions.</source>
+				<target>Bitte geben Sie die E-Mail-Adresse, mit der Sie aktuell angemeldet sind, in das folgende Feld ein.
+					Sie erhalten dann eine E-Mail mit weiteren Instruktionen.</target>
 			</trans-unit>
 		</body>
 	</file>

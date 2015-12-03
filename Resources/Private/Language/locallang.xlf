@@ -70,7 +70,8 @@
 				<source>Unsubscribe or change data</source>
 			</trans-unit>
 			<trans-unit id="update_request_form_infotext" xml:space="preserve">
-				<source>Please enter your email address and submit the form. You will receive an email with further instructions..</source>
+				<source>Please enter the email address that you used to subscribe to the newsletter and submit the form.
+					You will receive an email with further instructions.</source>
 			</trans-unit>
 		</body>
 	</file>
