@@ -22,6 +22,7 @@
 			</tm:form.validatedControlGroup>
 
 			<div class="form-group">
+				<f:render partial="Subscription/Backbutton" arguments="{_all}" />
 				<f:form.submit class="btn btn-primary" value="Abbestellen" />
 			</div>
 
@@ -42,6 +43,8 @@
 			<p>
 				<f:render partial="Subscription/TellmaticError" arguments="{_all}" />
 			</p>
+
+			<f:render partial="Subscription/BacklinkUpdate" arguments="{_all}" />
 		</f:else>
 	</f:then>
 </f:if>

@@ -10,6 +10,8 @@
 		<p>Beim Laden Ihrer Daten ist ein Fehler aufgetreten.</p>
 
 		<p><f:render partial="Subscription/TellmaticError" arguments="{_all}" /></p>
+
+		<f:render partial="Subscription/BacklinkUpdate" arguments="{_all}" />
 	</f:then>
 </f:if>
 
@@ -43,6 +45,7 @@
 		<f:render partial="Subscription/RequiredFieldsHint" arguments="{_all}" />
 
 		<div class="form-group">
+			<f:render partial="Subscription/Backbutton" arguments="{_all}" />
 			<f:form.submit class="btn btn-primary" value="Absenden" />
 		</div>
 

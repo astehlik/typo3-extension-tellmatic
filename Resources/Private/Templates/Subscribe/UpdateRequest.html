@@ -1,6 +1,7 @@
 {namespace tm=Sto\Tellmatic\ViewHelpers}
 
 <f:if condition="{hasErrors}">
+
 	<f:else>
 		<h2>Newsletter Anmeldung ändern</h2>
 
@@ -8,7 +9,10 @@
 
 		<p>Sie erhalten in Kürze eine E-Mail, die Links enthält, mit denen Sie Ihre Daten ändern
 			oder den Newsletter abbestellen können.</p>
+
+		<f:render partial="Subscription/BacklinkUpdate" arguments="{_all}" />
 	</f:else>
+
 	<f:then>
 		<h2>Ein Fehler ist aufgetreten</h2>
 
@@ -16,4 +20,5 @@
 
 		<p><f:render partial="Subscription/TellmaticError" arguments="{_all}" /></p>
 	</f:then>
+
 </f:if>
