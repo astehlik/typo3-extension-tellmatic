@@ -93,9 +93,9 @@
 			</trans-unit>
 			<trans-unit id="update_request_form_infotext" xml:space="preserve">
 				<source>Please enter the email address that you used to subscribe to the newsletter and submit the form.
-					You will receive an email with further instructions.</source>
+					You will receive an email containing a link to unsubscribe or to change your data.</source>
 				<target>Bitte geben Sie die E-Mail-Adresse, mit der Sie aktuell angemeldet sind, in das folgende Feld ein.
-					Sie erhalten dann eine E-Mail mit weiteren Instruktionen.</target>
+					Sie erhalten eine E-Mail mit einem Link, über den Sie den Newsletter abbestellen oder Ihre Daten aktualisieren können.</target>
 			</trans-unit>
 		</body>
 	</file>
