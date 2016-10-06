@@ -16,8 +16,6 @@ use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Utility\Exception\SubscribeConfirmInvalidStateException;
 use Tx\Authcode\Domain\Model\AuthCode;
-use TYPO3\CMS\Core\Mail\MailMessage;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Fluid\View\TemplateView;
 
@@ -42,16 +40,22 @@ class SubscriptionHandler {
 	 */
 	protected $configurationManager;
 
+    /**
+     * @var \Sto\Tellmatic\Utility\MailUtility
+     * @inject
+     */
+    protected $mailUtility;
+
 	/**
 	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
 	 * @inject
 	 */
-	protected $objectManager;
+	public $objectManager;
 
 	/**
 	 * @var array
 	 */
-	protected $settings;
+	public $settings;
 
 	/**
 	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
@@ -62,12 +66,12 @@ class SubscriptionHandler {
 	/**
 	 * @var \TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder
 	 */
-	protected $uriBuilder;
+	public $uriBuilder;
 
 	/**
 	 * @var TemplateView
 	 */
-	protected $view;
+	public $view;
 
 	/**
 	 * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
@@ -98,10 +102,19 @@ class SubscriptionHandler {
 
 		if (!empty($this->settings['mail']['subscribeSuccess'])) {
 			$subject = 'Ihre Newsletteranmeldung';
-			$mailview = $this->getMailView('SubscribeSuccess');
+			$mailview = $this->mailUtility->getMailView('SubscribeSuccess', $this->settings['mail']['templatePath'], $this->view);
 			$mailview->assign('email', $email);
 			$mailtext = $mailview->render();
-			$this->sendMail($email, $subject, $mailtext);
+
+            $this->mailUtility->sendMail($email, $subject, $mailtext);
+            if($this->settings['mail']['adminNotifications']['onSubscribeConfirm']) {
+                $subject = 'Neue Newsletterbestätigung';
+                $mailview = $this->mailUtility->getMailView('SubscribeConfirmMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+                $mailview->assign('email', $email);
+                $mailtext = $mailview->render();
+
+                $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+            }
 		}
 	}
 
@@ -148,6 +161,15 @@ class SubscriptionHandler {
 		$unsubscribeRequest->setNewsletterId($newsletterId);
 		$unsubscribeRequest->getMemo()->addLineToMemo($memo);
 		$this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
+
+        if($this->settings['mail']['adminNotifications']['onUnsubscribe']) {
+            $subject = 'Newsletterabmeldung';
+            $mailview = $this->mailUtility->getMailView('UnsubscribeMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
+
+            $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+        }
 	}
 
 	/**
@@ -205,62 +227,6 @@ class SubscriptionHandler {
 	}
 
 	/**
-	 * Usees the tinyurls extension to generate
-	 *
-	 * @param string $action
-	 * @param string $authCode
-	 * @return string
-	 */
-	protected function generateTinyUrl($action, $authCode) {
-
-		if (empty($this->settings['authCodeUrlSpeaking'])) {
-			return NULL;
-		}
-
-		if (empty($this->settings['authCodeUrlTempate'][$action])) {
-			return NULL;
-		}
-
-		$authCodeUrl['value'] = $this->settings['authCodeUrlTempate'][$action];
-		$authCodeUrl['insertData'] = 1;
-		$authCodeUrl = $this->configurationManager->getContentObject()->cObjGetSingle('TEXT', $authCodeUrl);
-
-		if (empty($authCodeUrl)) {
-			return NULL;
-		}
-
-		$authCodeUrl = str_replace('###authcode###', $authCode, $authCodeUrl);
-
-		return $authCodeUrl;
-	}
-
-	/**
-	 * Reads the mail template path from the settings.
-	 *
-	 * @return string
-	 */
-	protected function getMailTemplatePath() {
-		$templatePath = GeneralUtility::getFileAbsFileName($this->settings['mail']['templatePath']);
-		if (empty($templatePath)) {
-			throw new \InvalidArgumentException('The configured mail tempalte directory is invalid: ' . $this->settings['mail']['templatePath']);
-		}
-		return rtrim($templatePath, '/') . '/';
-	}
-
-	/**
-	 * Returns a template view instance that can be used for email generation.
-	 *
-	 * @param string $mailTemplate
-	 * @return TemplateView
-	 */
-	protected function getMailView($mailTemplate) {
-		/** @var TemplateView $view */
-		$view = clone($this->view);
-		$view->setTemplatePathAndFilename($this->getMailTemplatePath() . $mailTemplate . '.txt');
-		return $view;
-	}
-
-	/**
 	 * Fetches the subscription state / data of an email address.
 	 *
 	 * @param string $email
@@ -298,8 +264,18 @@ class SubscriptionHandler {
 		$authCode = $this->objectManager->get(AuthCode::class);
 		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
 
-		$mailView = $this->getMailView('ConfirmSubscription');
-		$this->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView);
+		$mailView = $this->mailUtility->getMailView('ConfirmSubscription', $this->settings['mail']['templatePath'], $this->view);
+        $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
+
+        if($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
+            $subject = 'Neue Newsletteranmeldung';
+
+            $mailview = $this->mailUtility->getMailView('SubscribeRequestMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
+
+            $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+        }
 	}
 
 	/**
@@ -325,8 +301,18 @@ class SubscriptionHandler {
 		$authCode = $this->objectManager->get(AuthCode::class);
 		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
 
-		$mailView = $this->getMailView('UpdateSubscription');
-		$this->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, TRUE);
+		$mailView = $this->mailUtility->getMailView('UpdateSubscription', $this->settings['mail']['templatePath'], $this->view);
+        $this->mailUtility->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, $this->uriBuilder, TRUE);
+
+        if($this->settings['mail']['adminNotifications']['onUpdate']) {
+            $subject = 'Änderung Newsletterdaten';
+
+            $mailview = $this->mailUtility->getMailView('UpdateMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
+
+            $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+        }
 	}
 
 	/**
@@ -336,9 +322,9 @@ class SubscriptionHandler {
 	 */
 	protected function handleUpdateRequestOfNonExistingSubscriber($email) {
 		$subject = 'Ihre Newsletteranmeldung';
-		$view = $this->getMailView('NoSubscription');
+		$view = $this->mailUtility->getMailView('NoSubscription', $this->settings['mail']['templatePath'], $this->view);
 		$view->assign('email', $email);
-		$this->sendMail($email, $subject, $view->render());
+        $this->mailUtility->sendMail($email, $subject, $view->render());
 	}
 
 	/**
@@ -353,72 +339,12 @@ class SubscriptionHandler {
 		$authCode = $this->objectManager->get(AuthCode::class);
 		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
 
-		$mailView = $this->getMailView('ConfirmSubscription');
-		$this->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView);
+		$mailView = $this->mailUtility->getMailView('ConfirmSubscription', $this->settings['mail']['templatePath'], $this->view);
+        $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
 	}
 
 	/**
-	 * Generates an action URI with the given auth code.
-	 *
-	 * If the action is "updateForm" an additional unsubscribe URI will be generated.
-	 *
-	 * These variables are assigned in the view:
-	 * actionUrl - contains the URI to the given action.
-	 * unsubscribeUrl - only if $buildUnsubscribeUrl is TRUE.
-	 *
-	 * @param string $action
-	 * @param AuthCode $authCode
-	 * @param string $subject
-	 * @param \TYPO3\CMS\Extbase\Mvc\View\ViewInterface $view
-	 * @param bool $buildUnsubscribeUrl
-	 */
-	protected function sendAuthCodeMail($action, $authCode, $subject, $view, $buildUnsubscribeUrl = FALSE) {
-
-		$email = $authCode->getIdentifier();
-		$view->assign('email', $email);
-
-		$actionUrl = $this->uriBuilder
-			->reset()
-			->setCreateAbsoluteUri(TRUE)
-			->setUseCacheHash(FALSE)
-			->uriFor($action, array('authCode' => $authCode->getAuthCode()));
-		$actionUrlTiny = $this->generateTinyUrl($action, $authCode->getAuthCode());
-		$view->assign('actionUrl', $actionUrlTiny ? $actionUrlTiny : $actionUrl);
-
-		if ($buildUnsubscribeUrl) {
-			$unsubscribeUrl = $this->uriBuilder
-				->reset()
-				->setCreateAbsoluteUri(TRUE)
-				->setUseCacheHash(FALSE)
-				->uriFor('unsubscribeForm', array('authCode' => $authCode->getAuthCode()));
-			$unsubscribeUrlTiny = $this->generateTinyUrl('unsubscribeForm', $authCode->getAuthCode());
-			$view->assign('unsubscribeUrl', $unsubscribeUrlTiny ? $unsubscribeUrlTiny : $unsubscribeUrl);
-		}
-
-		$mailtext = $view->render();
-
-		$this->sendMail($email, $subject, $mailtext);
-	}
-
-	/**
-	 * Sends an email with the given parameters.
-	 *
-	 * @param string $email
-	 * @param string $subject
-	 * @param string $mailtext
-	 */
-	protected function sendMail($email, $subject, $mailtext) {
-		$mail = $this->objectManager->get(MailMessage::class);
-		$fromName = !empty($this->settings['mail']['fromName']) ? $this->settings['mail']['fromName'] : NULL;
-		$mail->setFrom($this->settings['mail']['from'], $fromName);
-		$mail->setTo($email);
-		$mail->setSubject($subject);
-		$mail->addPart($mailtext);
-		$mail->send();
-	}
-
-	/**
-	 * Sens a subscribe request to Tellmatic with the given parameters.
+	 * Sends a subscribe request to Tellmatic with the given parameters.
 	 *
 	 * @param string $email
 	 * @param array $additionalData
@@ -426,7 +352,6 @@ class SubscriptionHandler {
 	 * @param string $status
 	 */
 	protected function sendSubscribeRequest($email, $additionalData, $memo, $status) {
-
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
 		$subscribeRequest = $this->objectManager->get(SubscribeRequest::class, $email);
 

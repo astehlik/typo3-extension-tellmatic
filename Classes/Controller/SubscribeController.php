@@ -108,6 +108,10 @@ class SubscribeController extends ActionController {
 			$this->handleException($e);
 		}
 
+        if($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
+
+        }
+
 		$this->view->assignMultiple(array(
 			'subscriptionSuccessful' => $subscriptionSuccessful,
 			'subscriptionError' => $subscriptionError,
