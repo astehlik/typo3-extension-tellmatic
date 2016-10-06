@@ -1,0 +1,2 @@
+
+Die E-Mail Adresse {email} hat sich vom Newsletter abgemeldet.
