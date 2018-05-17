@@ -162,14 +162,14 @@ class SubscriptionHandler {
 		$unsubscribeRequest->getMemo()->addLineToMemo($memo);
 		$this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 
-        if($this->settings['mail']['adminNotifications']['onUnsubscribe']) {
-            $subject = 'Newsletterabmeldung';
-            $mailview = $this->mailUtility->getMailView('UnsubscribeMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
-            $mailview->assign('email', $email);
-            $mailtext = $mailview->render();
+		if($this->settings['mail']['adminNotifications']['onUnsubscribe']) {
+			$subject = 'Newsletterabmeldung';
+			$mailview = $this->mailUtility->getMailView('UnsubscribeMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+			$mailview->assign('email', $email);
+			$mailtext = $mailview->render();
 
-            $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
-        }
+			$this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+		}
 	}
 
 	/**
@@ -265,17 +265,17 @@ class SubscriptionHandler {
 		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
 
 		$mailView = $this->mailUtility->getMailView('ConfirmSubscription', $this->settings['mail']['templatePath'], $this->view);
-        $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
+		$this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
 
-        if($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
-            $subject = 'Neue Newsletteranmeldung';
+		if($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
+			$subject = 'Neue Newsletteranmeldung';
 
-            $mailview = $this->mailUtility->getMailView('SubscribeRequestMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
-            $mailview->assign('email', $email);
-            $mailtext = $mailview->render();
+			$mailview = $this->mailUtility->getMailView('SubscribeRequestMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+			$mailview->assign('email', $email);
+			$mailtext = $mailview->render();
 
-            $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
-        }
+			$this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+		}
 	}
 
 	/**
@@ -302,17 +302,17 @@ class SubscriptionHandler {
 		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
 
 		$mailView = $this->mailUtility->getMailView('UpdateSubscription', $this->settings['mail']['templatePath'], $this->view);
-        $this->mailUtility->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, $this->uriBuilder, TRUE);
+		$this->mailUtility->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, $this->uriBuilder, TRUE);
 
-        if($this->settings['mail']['adminNotifications']['onUpdate']) {
-            $subject = 'Änderung Newsletterdaten';
+		if($this->settings['mail']['adminNotifications']['onUpdate']) {
+			$subject = 'Änderung Newsletterdaten';
 
-            $mailview = $this->mailUtility->getMailView('UpdateMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
-            $mailview->assign('email', $email);
-            $mailtext = $mailview->render();
+			$mailview = $this->mailUtility->getMailView('UpdateMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+			$mailview->assign('email', $email);
+			$mailtext = $mailview->render();
 
-            $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
-        }
+			$this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+		}
 	}
 
 	/**
