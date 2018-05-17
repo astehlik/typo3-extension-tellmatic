@@ -50,12 +50,12 @@ class SubscriptionHandler {
 	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
 	 * @inject
 	 */
-	public $objectManager;
+	protected $objectManager;
 
 	/**
 	 * @var array
 	 */
-	public $settings;
+	protected $settings;
 
 	/**
 	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
@@ -66,12 +66,12 @@ class SubscriptionHandler {
 	/**
 	 * @var \TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder
 	 */
-	public $uriBuilder;
+	protected $uriBuilder;
 
 	/**
 	 * @var TemplateView
 	 */
-	public $view;
+	protected $view;
 
 	/**
 	 * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
