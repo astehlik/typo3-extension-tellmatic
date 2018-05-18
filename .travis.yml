@@ -45,4 +45,4 @@ script:
   - >
     echo;
     echo "Running unit tests";
-    .Build/bin/phpunit --colors -c typo3/sysext/core/Build/UnitTests.xml typo3conf/ext/tellmatic/Tests/Unit/
+    .Build/bin/phpunit -c .Build/vendor/nimut/testing-framework/res/Configuration/UnitTests.xml Tests/Unit
