@@ -23,7 +23,7 @@ cache:
     - $HOME/.composer/cache
 
 before_script:
-  - export TYPO3_PATH_ROOT==$PWD/.Build/Web
+  - export TYPO3_PATH_ROOT=$PWD/.Build/Web
   - composer require typo3/cms:$TYPO3
 
 script:
