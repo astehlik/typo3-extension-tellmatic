@@ -54,6 +54,14 @@ plugin.tx_tellmatic {
 			fromName =
 			subscribeSuccess = 0
 			templatePath = EXT:tellmatic/Resources/Private/Templates/Subscribe/Mail/
+			adminNotifications {
+				addresses = mail1@intera.de
+				onSubscribeRequest = 1
+				onSubscribeConfirm = 1
+				onUnsubscribe = 1
+				onUpdate = 1
+				templatePath = EXT:tellmatic/Resources/Private/Templates/Subscribe/Mail/AdminNotifications/
+			}
 		}
 
 		template {
