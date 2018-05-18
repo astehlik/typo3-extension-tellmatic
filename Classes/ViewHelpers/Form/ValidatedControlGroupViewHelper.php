@@ -19,6 +19,12 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
  */
 class ValidatedControlGroupViewHelper extends AbstractTagBasedViewHelper
 {
+    public function initialize()
+    {
+        parent::initialize();
+        $this->tag->forceClosingTag(true);
+    }
+
     /**
      * Initialize all arguments.
      *
