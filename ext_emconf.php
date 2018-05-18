@@ -17,6 +17,5 @@ $EM_CONF[$_EXTKEY] = [
             'typo3' => '6.2.3-7.99.99',
         ],
         'conflicts' => [],
-        'suggests' => ['formhandler_subscription' => '0.0.0-0.0.0'],
     ],
 ];
