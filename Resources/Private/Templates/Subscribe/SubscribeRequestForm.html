@@ -16,7 +16,7 @@
 
 		<tm:form.validatedControlGroup for="email">
 			<label class="control-label" for="tx-tellmatic-subscribe-request-email">E-Mail
-				<span class="form-required-label" title="Pflichtfeld">*</span></label>
+				<span class="form-required-label" title="Pflichtfeld">(<i>Pflichtfeld</i>)</span></label>
 			<tm:form.inlineHelpOrErrors />
 			<f:form.textfield class="form-control" id="tx-tellmatic-subscribe-request-email" type="text" name="email" />
 		</tm:form.validatedControlGroup>
@@ -30,8 +30,8 @@
 		<f:if condition="{settings.privacyPolicy.checkRequired}">
 			<tm:form.validatedControlGroup for="acceptConditions">
 				<label class="control-label">
-					Datenschutz
-					<span class="form-required-label" title="Pflichtfeld">*</span>
+					Hinweis zum Datenschutz
+					<!--<span class="form-required-label" title="Pflichtfeld">(<i>Pflichtfeld</i>)</span>-->
 				</label>
 				<tm:form.inlineHelpOrErrors />
 				<div class="checkbox">
