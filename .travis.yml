@@ -40,7 +40,7 @@ script:
       echo;
       echo;
       .Build/bin/phpcs --config-set installed_paths $PWD/.Build/vendor/de-swebhosting/php-codestyle/PhpCodeSniffer
-      .Build/bin/phpcs --standard=PSRDefault Classes Configuration/TCA Tests/Unit ext_emconf.php ext_localconf.php
+      .Build/bin/phpcs --standard=PSRDefault Classes Tests/Unit ext_emconf.php ext_localconf.php ext_tables.php
     fi
   - >
     echo;
