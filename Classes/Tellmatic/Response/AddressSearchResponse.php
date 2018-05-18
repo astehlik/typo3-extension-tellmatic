@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Response;
 
 /*                                                                        *
@@ -14,34 +15,35 @@ namespace Sto\Tellmatic\Tellmatic\Response;
 /**
  * A tellmatic response that contains the subscribe state of an address.
  */
-class AddressSearchResponse extends TellmaticResponse {
+class AddressSearchResponse extends TellmaticResponse
+{
+    /**
+     * @var array
+     */
+    protected $addresses = [];
 
-	/**
-	 * @var array
-	 */
-	protected $addresses = array();
+    /**
+     * @return array
+     */
+    public function getAddresses()
+    {
+        return $this->addresses;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getAddresses() {
-		return $this->addresses;
-	}
+    /**
+     * Checks the subscribe state that tellmatic should have provided
+     * in its response data
+     *
+     * @param array $responseData
+     * @return void
+     * @throws \RuntimeException
+     */
+    public function processAdditionalResponseData($responseData)
+    {
+        if (!is_array($responseData['addresses'])) {
+            throw new \RuntimeException('Tellmatic did not provide a valid addresses property in its response.');
+        }
 
-	/**
-	 * Checks the subscribe state that tellmatic should have provided
-	 * in its response data
-	 *
-	 * @param array $responseData
-	 * @return void
-	 * @throws \RuntimeException
-	 */
-	public function processAdditionalResponseData($responseData) {
-
-		if (!is_array($responseData['addresses'])) {
-			throw new \RuntimeException('Tellmatic did not provide a valid addresses property in its response.');
-		}
-
-		$this->addresses = $responseData['addresses'];
-	}
+        $this->addresses = $responseData['addresses'];
+    }
 }

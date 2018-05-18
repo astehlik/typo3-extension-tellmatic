@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Request;
 
 /*                                                                        *
@@ -17,33 +18,34 @@ use TYPO3\CMS\Core\Http\HttpRequest;
  * HTTP request class that allows access to the POST parameters and
  * makes sure all POST parameters added are strings.
  */
-class AccessibleHttpRequest extends HttpRequest {
+class AccessibleHttpRequest extends HttpRequest
+{
+    /**
+     * Adds POST parameter(s) to the request.
+     *
+     * Makes sure that all values are added as strings to prevent hmac validation
+     * errors on the Tellmatic side.
+     *
+     * @param string|array $name parameter name or array ('name' => 'value')
+     * @param mixed $value parameter value (can be an array)
+     * @return \HTTP_Request2
+     */
+    public function addPostParameter($name, $value = null)
+    {
+        if (!is_array($name)) {
+            $value = (string)$value;
+        }
 
-	/**
-	 * Adds POST parameter(s) to the request.
-	 *
-	 * Makes sure that all values are added as strings to prevent hmac validation
-	 * errors on the Tellmatic side.
-	 *
-	 * @param string|array $name parameter name or array ('name' => 'value')
-	 * @param mixed $value parameter value (can be an array)
-	 * @return \HTTP_Request2
-	 */
-	public function addPostParameter($name, $value = NULL) {
+        return parent::addPostParameter($name, $value);
+    }
 
-		if (!is_array($name)) {
-			$value = (string)$value;
-		}
-
-		return parent::addPostParameter($name, $value);
-	}
-
-	/**
-	 * Returns the current POST parameters array.
-	 *
-	 * @return array
-	 */
-	public function getPostParameters() {
-		return $this->postParams;
-	}
+    /**
+     * Returns the current POST parameters array.
+     *
+     * @return array
+     */
+    public function getPostParameters()
+    {
+        return $this->postParams;
+    }
 }

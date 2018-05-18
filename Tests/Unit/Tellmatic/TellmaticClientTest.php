@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tests\Unit\Tellmatic;
 
 /*                                                                        *
@@ -22,212 +23,258 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Test for the Tellmatic client and the API.
  */
-class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
+class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
+{
+    /**
+     * Failure code when a page is not found during a HTTP request.
+     *
+     * @const
+     */
+    const HTTP_STATUS_CODE_NOT_FOUND = 404;
 
-	/**
-	 * Failure code when a page is not found during a HTTP request.
-	 *
-	 * @const
-	 */
-	const HTTP_STATUS_CODE_NOT_FOUND = 404;
+    /**
+     * HTTP return code for successful requests.
+     *
+     * @const
+     */
+    const HTTP_STATUS_CODE_OK = 200;
 
-	/**
-	 * HTTP return code for successful requests.
-	 *
-	 * @const
-	 */
-	const HTTP_STATUS_CODE_OK = 200;
+    /**
+     * @var string
+     */
+    protected $responseDataValid;
 
-	/**
-	 * @var string
-	 */
-	protected $responseDataValid;
+    /**
+     * @var TellmaticClient|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $tellmaticClient;
 
-	/**
-	 * @var TellmaticClient|\PHPUnit_Framework_MockObject_MockObject
-	 */
-	protected $tellmaticClient;
+    /**
+     * @var TellmaticResponse
+     */
+    protected $tellmaticResponse;
 
-	/**
-	 * @var TellmaticResponse
-	 */
-	protected $tellmaticResponse;
+    /**
+     * @var
+     */
+    protected $testEmailInvalid = 'no email';
 
-	/**
-	 * @var
-	 */
-	protected $testEmailInvalid = 'no email';
+    /**
+     * @var
+     */
+    protected $testEmailValid = 'tellmatic-test@swebhosting.de';
 
-	/**
-	 * @var
-	 */
-	protected $testEmailValid = 'tellmatic-test@swebhosting.de';
+    /**
+     * @var string
+     */
+    protected $testUrlInvalid = 'a nonsense URL';
 
-	/**
-	 * @var string
-	 */
-	protected $testUrlInvalid = 'a nonsense URL';
+    /**
+     * @var string
+     */
+    protected $testUrlValid = 'http://tellmatic-test.swebhosting.de';
 
-	/**
-	 * @var string
-	 */
-	protected $testUrlValid = 'http://tellmatic-test.swebhosting.de';
+    /**
+     * Initializes the Tellmatic client.
+     */
+    public function setUp()
+    {
+        $this->responseDataValid = json_encode(
+            ['success' => true]
+        );
 
-	/**
-	 * Initializes the Tellmatic client.
-	 */
-	public function setUp() {
+        $this->tellmaticResponse = GeneralUtility::makeInstance(TellmaticResponse::class);
 
-		$this->responseDataValid = json_encode(array(
-			'success' => TRUE,
-		));
+        $this->tellmaticClient = $this->getMock(
+            TellmaticClient::class,
+            [
+                'dummy',
+                'createResponse',
+                'getTellmaticApiKey',
+            ]
+        );
+        $this->tellmaticClient->expects($this->once())->method('createResponse')->will(
+            $this->returnValue($this->tellmaticResponse)
+        );
+        $this->tellmaticClient->setCustomUrl($this->testUrlValid);
+    }
 
-		$this->tellmaticResponse = GeneralUtility::makeInstance(TellmaticResponse::class);
+    /**
+     * @test
+     */
+    public function sendSubscribeRequestReturnsTrueOnSuccess()
+    {
+        if (GeneralUtility::compat_version('7.0')) {
+            $this->markTestSkipped(
+                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
+                . ' see https://forge.typo3.org/issues/67838'
+            );
+            return;
+        }
 
-		$this->tellmaticClient = $this->getMock(TellmaticClient::class, array('dummy', 'createResponse', 'getTellmaticApiKey'));
-		$this->tellmaticClient->expects($this->once())->method('createResponse')->will($this->returnValue($this->tellmaticResponse));
-		$this->tellmaticClient->setCustomUrl($this->testUrlValid);
-	}
+        $responseMock = $this->getMock('HTTP_Request2_Response', ['getStatus', 'getBody'], [], '', false);
+        $responseMock->expects($this->once())->method('getStatus')->will(
+            $this->returnValue(static::HTTP_STATUS_CODE_OK)
+        );
+        $responseMock->expects($this->once())->method('getBody')->will($this->returnValue($this->responseDataValid));
 
-	/**
-	 * @test
-	 */
-	public function sendSubscribeRequestReturnsTrueOnSuccess() {
+        /** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+        $httpRequest = $this->getMock(AccessibleHttpRequest::class, ['send']);
+        $httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
-		if (GeneralUtility::compat_version('7.0')) {
-			$this->markTestSkipped('Skipped because of problems with class loading in PEAR packages in TYPO3 7, see https://forge.typo3.org/issues/67838');
-			return;
-		}
+        /** @var SubscribeRequest $subscribeRequest */
+        $subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_OK));
-		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($this->responseDataValid));
+        $this->tellmaticClient->setHttpRequest($httpRequest);
+        $tellmaticResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
 
-		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
-		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
+        $this->assertNotNull($tellmaticResponse);
+    }
 
-		/** @var SubscribeRequest $subscribeRequest */
-		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
+    /**
+     * @test
+     * @dataProvider sendSubscribeRequestReturnsValidFailureCodeDataProvider
+     * @param string $responseData
+     * @param $expectedFailureCode
+     */
+    public function sendSubscribeRequestReturnsValidFailureCode($responseData, $expectedFailureCode)
+    {
+        if (GeneralUtility::compat_version('7.0')) {
+            $this->markTestSkipped(
+                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
+                . ' see https://forge.typo3.org/issues/67838'
+            );
+            return;
+        }
 
-		$this->tellmaticClient->setHttpRequest($httpRequest);
-		$tellmaticResponse = $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+        $responseMock = $this->getMock('HTTP_Request2_Response', ['getStatus', 'getBody'], [], '', false);
+        $responseMock->expects($this->once())->method('getStatus')->will(
+            $this->returnValue(static::HTTP_STATUS_CODE_OK)
+        );
+        $responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
 
-		$this->assertNotNull($tellmaticResponse);
-	}
+        /** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+        $httpRequest = $this->getMock(AccessibleHttpRequest::class, ['send']);
+        $httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
-	/**
-	 * @test
-	 * @dataProvider sendSubscribeRequestReturnsValidFailureCodeDataProvider
-	 * @param string $responseData
-	 * @param $expectedFailureCode
-	 */
-	public function sendSubscribeRequestReturnsValidFailureCode($responseData, $expectedFailureCode) {
+        /** @var SubscribeRequest $subscribeRequest */
+        $subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
 
-		if (GeneralUtility::compat_version('7.0')) {
-			$this->markTestSkipped('Skipped because of problems with class loading in PEAR packages in TYPO3 7, see https://forge.typo3.org/issues/67838');
-			return;
-		}
+        $this->tellmaticClient->setHttpRequest($httpRequest);
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_OK));
-		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue($responseData));
+        try {
+            $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+            $this->fail('The request did not throw the expected exception: ' . $expectedFailureCode);
+        } catch (\Exception $e) {
+            $exceptionType = get_class($e);
+            $this->assertEquals($expectedFailureCode, $exceptionType);
+        }
+    }
 
-		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
-		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
+    /**
+     * @return array
+     */
+    public function sendSubscribeRequestReturnsValidFailureCodeDataProvider()
+    {
+        return [
+            'validJsonInvalidData' => [
+                'responseData' => json_encode(['this', 'json', 'data', 'is', 'nonsense']),
+                'expectedException' => InvalidResponseException::class,
+            ],
+            'validJsonInvalidEmail' => [
+                'responseData' => json_encode(
+                    [
+                        'success' => false,
+                        'failure_code' => 'invalid_email',
+                        'failure_reason' => 'Invalid mail',
+                    ]
+                ),
+                'expectedException' => InvalidEmailException::class,
+            ],
+            'validJsonInvalidFormData' => [
+                'responseData' => json_encode(
+                    [
+                        'success' => false,
+                        'failure_code' => 'invalid_form_data',
+                        'failure_reason' => 'Invalid form data',
+                    ]
+                ),
+                'expectedFailureCode' => \Sto\Tellmatic\Tellmatic\Exception\InvalidFormDataException::class,
+            ],
+        ];
+    }
 
-		/** @var SubscribeRequest $subscribeRequest */
-		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
+    /**
+     * @test
+     * @expectedException \Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException
+     */
+    public function sendSubscribeRequestThrowsExceptionOnErrorResponseCode()
+    {
+        if (GeneralUtility::compat_version('7.0')) {
+            $this->markTestSkipped(
+                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
+                . ' see https://forge.typo3.org/issues/67838'
+            );
+            return;
+        }
 
-		$this->tellmaticClient->setHttpRequest($httpRequest);
+        $responseMock = $this->getMock(
+            'HTTP_Request2_Response',
+            [
+                'getStatus',
+                'getBody',
+                'getReasonPhrase',
+                'getEffectiveUrl',
+            ],
+            [],
+            '',
+            false
+        );
+        $responseMock->expects($this->once())->method('getStatus')->will(
+            $this->returnValue(static::HTTP_STATUS_CODE_NOT_FOUND)
+        );
 
-		try {
-			$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-			$this->fail('The request did not throw the expected exception: ' . $expectedFailureCode);
-		} catch (\Exception $e) {
-			$exceptionType = get_class($e);
-			$this->assertEquals($expectedFailureCode, $exceptionType);
-		}
-	}
+        /** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+        $httpRequest = $this->getMock(AccessibleHttpRequest::class, ['send']);
+        $httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
-	/**
-	 * @return array
-	 */
-	public function sendSubscribeRequestReturnsValidFailureCodeDataProvider() {
+        /** @var SubscribeRequest $subscribeRequest */
+        $subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
 
-		return array(
-			'validJsonInvalidData' => array(
-				'responseData' => json_encode(array('this', 'json', 'data', 'is', 'nonsense')),
-				'expectedException' => InvalidResponseException::class,
-			),
-			'validJsonInvalidEmail' => array(
-				'responseData' => json_encode(array(
-					'success' => FALSE,
-					'failure_code' => 'invalid_email',
-					'failure_reason' => 'Invalid mail',
-				)),
-				'expectedException' => InvalidEmailException::class,
-			),
-			'validJsonInvalidFormData' => array(
-				'responseData' => json_encode(array(
-					'success' => FALSE,
-					'failure_code' => 'invalid_form_data',
-					'failure_reason' => 'Invalid form data',
-				)),
-				'expectedFailureCode' => \Sto\Tellmatic\Tellmatic\Exception\InvalidFormDataException::class,
-			),
-		);
-	}
+        $this->tellmaticClient->setHttpRequest($httpRequest);
+        $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+    }
 
-	/**
-	 * @test
-	 * @expectedException \Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException
-	 */
-	public function sendSubscribeRequestThrowsExceptionOnErrorResponseCode() {
+    /**
+     * @test
+     * @expectedException \Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException
+     */
+    public function sendSubscribeRequestThrowsExceptionOnInvalidResponse()
+    {
+        if (GeneralUtility::compat_version('7.0')) {
+            $this->markTestSkipped(
+                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
+                . ' see https://forge.typo3.org/issues/67838'
+            );
+            return;
+        }
 
-		if (GeneralUtility::compat_version('7.0')) {
-			$this->markTestSkipped('Skipped because of problems with class loading in PEAR packages in TYPO3 7, see https://forge.typo3.org/issues/67838');
-			return;
-		}
+        $responseMock = $this->getMock('HTTP_Request2_Response', ['getStatus', 'getBody'], [], '', false);
+        $responseMock->expects($this->once())->method('getStatus')->will(
+            $this->returnValue(static::HTTP_STATUS_CODE_OK)
+        );
+        $responseMock->expects($this->once())->method('getBody')->will(
+            $this->returnValue('totally invalid response data')
+        );
 
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody', 'getReasonPhrase', 'getEffectiveUrl'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_NOT_FOUND));
+        /** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
+        $httpRequest = $this->getMock(AccessibleHttpRequest::class, ['send']);
+        $httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
 
-		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
-		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
+        /** @var SubscribeRequest $subscribeRequest */
+        $subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
 
-		/** @var SubscribeRequest $subscribeRequest */
-		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
-
-		$this->tellmaticClient->setHttpRequest($httpRequest);
-		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-	}
-
-	/**
-	 * @test
-	 * @expectedException \Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException
-	 */
-	public function sendSubscribeRequestThrowsExceptionOnInvalidResponse() {
-
-		if (GeneralUtility::compat_version('7.0')) {
-			$this->markTestSkipped('Skipped because of problems with class loading in PEAR packages in TYPO3 7, see https://forge.typo3.org/issues/67838');
-			return;
-		}
-
-		$responseMock = $this->getMock('HTTP_Request2_Response', array('getStatus', 'getBody'), array(), '', FALSE);
-		$responseMock->expects($this->once())->method('getStatus')->will($this->returnValue(static::HTTP_STATUS_CODE_OK));
-		$responseMock->expects($this->once())->method('getBody')->will($this->returnValue('totally invalid response data'));
-
-		/** @var \TYPO3\CMS\Core\Http\HttpRequest|\PHPUnit_Framework_MockObject_MockObject $httpRequest */
-		$httpRequest = $this->getMock(AccessibleHttpRequest::class, array('send'));
-		$httpRequest->expects($this->once())->method('send')->will($this->returnValue($responseMock));
-
-		/** @var SubscribeRequest $subscribeRequest */
-		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $this->testEmailValid);
-
-		$this->tellmaticClient->setHttpRequest($httpRequest);
-		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-	}
+        $this->tellmaticClient->setHttpRequest($httpRequest);
+        $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+    }
 }

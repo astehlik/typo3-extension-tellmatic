@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility\Exception;
 
 /*                                                                        *
@@ -15,15 +16,16 @@ namespace Sto\Tellmatic\Utility\Exception;
  * This exception is thrown when the user tries to confirm his subscription
  * and the address has an invalid state (e.g. was already confirmed or removed).
  */
-class SubscribeConfirmInvalidStateException extends \Exception {
-
-	/**
-	 * @param string $subscribeState
-	 * @param int $code
-	 * @param \Exception|NULL $previous
-	 */
-	public function __construct($subscribeState, $code = 1441812286, \Exception $previous = NULL) {
-		$message = 'The address record is not in a valid state for subscription confirmation: ' . $subscribeState;
-		parent::__construct($message, $code, $previous);
-	}
+class SubscribeConfirmInvalidStateException extends \Exception
+{
+    /**
+     * @param string $subscribeState
+     * @param int $code
+     * @param \Exception|NULL $previous
+     */
+    public function __construct($subscribeState, $code = 1441812286, \Exception $previous = null)
+    {
+        $message = 'The address record is not in a valid state for subscription confirmation: ' . $subscribeState;
+        parent::__construct($message, $code, $previous);
+    }
 }

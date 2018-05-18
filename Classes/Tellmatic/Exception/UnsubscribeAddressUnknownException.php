@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
@@ -14,14 +15,15 @@ namespace Sto\Tellmatic\Tellmatic\Exception;
 /**
  * The address submitted for unsubscription does not exist in the Tellmatic database.
  */
-class UnsubscribeAddressUnknownException extends TellmaticException {
-
-	/**
-	 * @param string $message
-	 * @param int $code
-	 * @param null $previous
-	 */
-	public function __construct($message, $code = 1441711838, $previous = NULL) {
-		parent::__construct($message, $code, $previous);
-	}
+class UnsubscribeAddressUnknownException extends TellmaticException
+{
+    /**
+     * @param string $message
+     * @param int $code
+     * @param null $previous
+     */
+    public function __construct($message, $code = 1441711838, $previous = null)
+    {
+        parent::__construct($message, $code, $previous);
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
@@ -14,14 +15,15 @@ namespace Sto\Tellmatic\Tellmatic\Exception;
 /**
  * Invalid form data was submitted to the API. Check the validation settings in Tellmatic!
  */
-class InvalidFormDataException extends TellmaticException {
-
-	/**
-	 * @param array $responseData
-	 * @param int $code
-	 * @param null $previous
-	 */
-	public function __construct(array $responseData, $code = 1441711235, $previous = NULL) {
-		parent::__construct($responseData, $code, $previous);
-	}
+class InvalidFormDataException extends TellmaticException
+{
+    /**
+     * @param array $responseData
+     * @param int $code
+     * @param null $previous
+     */
+    public function __construct(array $responseData, $code = 1441711235, $previous = null)
+    {
+        parent::__construct($responseData, $code, $previous);
+    }
 }

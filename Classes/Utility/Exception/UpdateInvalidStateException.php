@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility\Exception;
 
 /*                                                                        *
@@ -15,15 +16,16 @@ namespace Sto\Tellmatic\Utility\Exception;
  * This exception is thrown when the user tries to access the update form
  * and the address is not in the database any more.
  */
-class UpdateInvalidStateException extends \Exception {
-
-	/**
-	 * @param string $subscribeState
-	 * @param int $code
-	 * @param \Exception|NULL $previous
-	 */
-	public function __construct($subscribeState, $code = 1441813632, \Exception $previous = NULL) {
-		$message = 'The address record is not in a valid state for updating the subcription data: ' . $subscribeState;
-		parent::__construct($message, $code, $previous);
-	}
+class UpdateInvalidStateException extends \Exception
+{
+    /**
+     * @param string $subscribeState
+     * @param int $code
+     * @param \Exception|NULL $previous
+     */
+    public function __construct($subscribeState, $code = 1441813632, \Exception $previous = null)
+    {
+        $message = 'The address record is not in a valid state for updating the subcription data: ' . $subscribeState;
+        parent::__construct($message, $code, $previous);
+    }
 }

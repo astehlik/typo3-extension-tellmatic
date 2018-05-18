@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility;
 
 /*                                                                        *
@@ -22,23 +23,23 @@ use TYPO3\CMS\Fluid\View\TemplateView;
 /**
  * Handles auth code generation and subscription emails.
  */
-class SubscriptionHandler {
+class SubscriptionHandler
+{
+    /**
+     * @var string
+     */
+    protected $authCodeContext;
 
-	/**
-	 * @var string
-	 */
-	protected $authCodeContext;
+    /**
+     * @var \Tx\Authcode\Domain\Repository\AuthCodeRepository
+     * @inject
+     */
+    protected $authCodeRepository;
 
-	/**
-	 * @var \Tx\Authcode\Domain\Repository\AuthCodeRepository
-	 * @inject
-	 */
-	protected $authCodeRepository;
-
-	/**
-	 * @var ConfigurationManagerInterface
-	 */
-	protected $configurationManager;
+    /**
+     * @var ConfigurationManagerInterface
+     */
+    protected $configurationManager;
 
     /**
      * @var \Sto\Tellmatic\Utility\MailUtility
@@ -46,326 +47,389 @@ class SubscriptionHandler {
      */
     protected $mailUtility;
 
-	/**
-	 * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
-	 * @inject
-	 */
-	protected $objectManager;
+    /**
+     * @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface
+     * @inject
+     */
+    protected $objectManager;
 
-	/**
-	 * @var array
-	 */
-	protected $settings;
+    /**
+     * @var array
+     */
+    protected $settings;
 
-	/**
-	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
-	 * @inject
-	 */
-	protected $tellmaticClient;
+    /**
+     * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
+     * @inject
+     */
+    protected $tellmaticClient;
 
-	/**
-	 * @var \TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder
-	 */
-	protected $uriBuilder;
+    /**
+     * @var \TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder
+     */
+    protected $uriBuilder;
 
-	/**
-	 * @var TemplateView
-	 */
-	protected $view;
+    /**
+     * @var TemplateView
+     */
+    protected $view;
 
-	/**
-	 * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
-	 */
-	public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager) {
-		$this->configurationManager = $configurationManager;
-		$this->settings = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS);
-	}
+    /**
+     * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
+     */
+    public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager)
+    {
+        $this->configurationManager = $configurationManager;
+        $this->settings = $configurationManager->getConfiguration(
+            ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS
+        );
+    }
 
-	/**
-	 * Processes the subscription confirmation.
-	 *
-	 * @param string $email
-	 * @param string $memo
-	 * @throws SubscribeConfirmInvalidStateException
-	 */
-	public function handleSubscribeConfirmation($email, $memo) {
+    /**
+     * Processes the subscription confirmation.
+     *
+     * @param string $email
+     * @param string $memo
+     * @throws SubscribeConfirmInvalidStateException
+     */
+    public function handleSubscribeConfirmation($email, $memo)
+    {
+        $subscribeStateResponse = $this->tellmaticClient->getSubscribeState($email);
 
-		$subscribeStateResponse = $this->tellmaticClient->getSubscribeState($email);
+        if ($subscribeStateResponse->getSubscribeState()
+            !== SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED
+        ) {
+            throw new SubscribeConfirmInvalidStateException($subscribeStateResponse->getSubscribeState());
+        }
 
-		if ($subscribeStateResponse->getSubscribeState() !== SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED) {
-			throw new SubscribeConfirmInvalidStateException($subscribeStateResponse->getSubscribeState());
-		}
+        /** @noinspection PhpMethodParametersCountMismatchInspection */
+        $addressData = $subscribeStateResponse->getAddressData();
+        $this->sendSubscribeRequest($email, $addressData, $memo, 'confirmed');
 
-		/** @noinspection PhpMethodParametersCountMismatchInspection */
-		$addressData = $subscribeStateResponse->getAddressData();
-		$this->sendSubscribeRequest($email, $addressData, $memo, 'confirmed');
-
-		if (!empty($this->settings['mail']['subscribeSuccess'])) {
-			$subject = 'Ihre Newsletteranmeldung';
-			$mailview = $this->mailUtility->getMailView('SubscribeSuccess', $this->settings['mail']['templatePath'], $this->view);
-			$mailview->assign('email', $email);
-			$mailtext = $mailview->render();
+        if (!empty($this->settings['mail']['subscribeSuccess'])) {
+            $subject = 'Ihre Newsletteranmeldung';
+            $mailview = $this->mailUtility->getMailView(
+                'SubscribeSuccess',
+                $this->settings['mail']['templatePath'],
+                $this->view
+            );
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
 
             $this->mailUtility->sendMail($email, $subject, $mailtext);
-            if($this->settings['mail']['adminNotifications']['onSubscribeConfirm']) {
+            if ($this->settings['mail']['adminNotifications']['onSubscribeConfirm']) {
                 $subject = 'Neue Newsletterbestätigung';
-                $mailview = $this->mailUtility->getMailView('SubscribeConfirmMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
+                $mailview = $this->mailUtility->getMailView(
+                    'SubscribeConfirmMessage',
+                    $this->settings['mail']['adminNotifications']['templatePath'],
+                    $this->view
+                );
                 $mailview->assign('email', $email);
                 $mailtext = $mailview->render();
 
-                $this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
+                $this->mailUtility->sendMail(
+                    $this->settings['mail']['adminNotifications']['addresses'],
+                    $subject,
+                    $mailtext
+                );
             }
-		}
-	}
+        }
+    }
 
-	/**
-	 * Processes a subscribe request that is generated when the user
-	 * fills out the subscription form.
-	 *
-	 * @param string $email
-	 * @param array $additionalData
-	 * @param string $memo
-	 */
-	public function handleSubscribeRequest($email, array $additionalData, $memo) {
+    /**
+     * Processes a subscribe request that is generated when the user
+     * fills out the subscription form.
+     *
+     * @param string $email
+     * @param array $additionalData
+     * @param string $memo
+     */
+    public function handleSubscribeRequest($email, array $additionalData, $memo)
+    {
+        $subscribeStateResponse = $this->getSubscriptionState($email);
 
-		$subscribeStateResponse = $this->getSubscriptionState($email);
+        switch ($subscribeStateResponse->getSubscribeState()) {
+            case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
+                $this->handleSubscribeRequestOfConfirmedSubscriber($email);
+                break;
+            case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
+                $this->handleSubscribeRequestOfUnconfirmedSubscriber($email, $additionalData, $memo);
+                break;
+            case SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED:
+                $this->handleSubscribeRequestOfNonExistingSubscriber($email, $additionalData, $memo);
+                break;
+        }
+    }
 
-		switch ($subscribeStateResponse->getSubscribeState()) {
-			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
-				$this->handleSubscribeRequestOfConfirmedSubscriber($email);
-				break;
-			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
-				$this->handleSubscribeRequestOfUnconfirmedSubscriber($email, $additionalData, $memo);
-				break;
-			case SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED:
-				$this->handleSubscribeRequestOfNonExistingSubscriber($email, $additionalData, $memo);
-				break;
-		}
-	}
+    /**
+     * Processes a submit of the unsubscribe form. Unsubscribes the user from the Tellmatic DB.
+     *
+     * @param string $email
+     * @param int $historyId
+     * @param int $queueId
+     * @param int $newsletterId
+     * @param string $memo
+     */
+    public function handleUnsubscribeSubmit($email, $historyId, $queueId, $newsletterId, $memo)
+    {
+        /** @noinspection PhpMethodParametersCountMismatchInspection */
+        $unsubscribeRequest = $this->objectManager->get(UnsubscribeRequest::class, $email);
+        $unsubscribeRequest->setDoNotSendEmails(true);
+        $unsubscribeRequest->setHistoryId($historyId);
+        $unsubscribeRequest->setQueueId($queueId);
+        $unsubscribeRequest->setNewsletterId($newsletterId);
+        $unsubscribeRequest->getMemo()->addLineToMemo($memo);
+        $this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 
-	/**
-	 * Processes a submit of the unsubscribe form. Unsubscribes the user from the Tellmatic DB.
-	 *
-	 * @param string $email
-	 * @param int $historyId
-	 * @param int $queueId
-	 * @param int $newsletterId
-	 * @param string $memo
-	 */
-	public function handleUnsubscribeSubmit($email, $historyId, $queueId, $newsletterId, $memo) {
-		/** @noinspection PhpMethodParametersCountMismatchInspection */
-		$unsubscribeRequest = $this->objectManager->get(UnsubscribeRequest::class, $email);
-		$unsubscribeRequest->setDoNotSendEmails(TRUE);
-		$unsubscribeRequest->setHistoryId($historyId);
-		$unsubscribeRequest->setQueueId($queueId);
-		$unsubscribeRequest->setNewsletterId($newsletterId);
-		$unsubscribeRequest->getMemo()->addLineToMemo($memo);
-		$this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
+        if ($this->settings['mail']['adminNotifications']['onUnsubscribe']) {
+            $subject = 'Newsletterabmeldung';
+            $mailview = $this->mailUtility->getMailView(
+                'UnsubscribeMessage',
+                $this->settings['mail']['adminNotifications']['templatePath'],
+                $this->view
+            );
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
 
-		if($this->settings['mail']['adminNotifications']['onUnsubscribe']) {
-			$subject = 'Newsletterabmeldung';
-			$mailview = $this->mailUtility->getMailView('UnsubscribeMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
-			$mailview->assign('email', $email);
-			$mailtext = $mailview->render();
+            $this->mailUtility->sendMail(
+                $this->settings['mail']['adminNotifications']['addresses'],
+                $subject,
+                $mailtext
+            );
+        }
+    }
 
-			$this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
-		}
-	}
+    /**
+     * Processes the update request when the user fills out the update request form.
+     *
+     * @param string $email
+     */
+    public function handleUpdateRequest($email)
+    {
+        $subscribeStateResponse = $this->getSubscriptionState($email);
 
-	/**
-	 * Processes the update request when the user fills out the update request form.
-	 *
-	 * @param string $email
-	 */
-	public function handleUpdateRequest($email) {
+        switch ($subscribeStateResponse->getSubscribeState()) {
+            case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
+                $this->handleUpdateRequestOfConfirmedSubscriber($email);
+                break;
+            case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
+                $this->handleUpdateRequestOfUnconfirmedSubscriber($email);
+                break;
+            case SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED:
+                $this->handleUpdateRequestOfNonExistingSubscriber($email);
+                break;
+        }
+    }
 
-		$subscribeStateResponse = $this->getSubscriptionState($email);
+    /**
+     * Processes the submit of the update form. Updates the data in the Tellmatic database.
+     *
+     * @param string $email
+     * @param array $additionalData
+     * @param string $memo
+     */
+    public function handleUpdateSubmit($email, array $additionalData, $memo)
+    {
+        $this->sendSubscribeRequest($email, $additionalData, $memo, 'confirmed');
+    }
 
-		switch ($subscribeStateResponse->getSubscribeState()) {
-			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
-				$this->handleUpdateRequestOfConfirmedSubscriber($email);
-				break;
-			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
-				$this->handleUpdateRequestOfUnconfirmedSubscriber($email);
-				break;
-			case SubscribeStateResponse::SUBSCRIBE_STATE_NOT_SUBSCRIBED:
-				$this->handleUpdateRequestOfNonExistingSubscriber($email);
-				break;
-		}
-	}
+    /**
+     * @param string $authCodeContext
+     */
+    public function setAuthCodeContext($authCodeContext)
+    {
+        $this->authCodeContext = $authCodeContext;
+    }
 
-	/**
-	 * Processes the submit of the update form. Updates the data in the Tellmatic database.
-	 *
-	 * @param string $email
-	 * @param array $additionalData
-	 * @param string $memo
-	 */
-	public function handleUpdateSubmit($email, array $additionalData, $memo) {
-		$this->sendSubscribeRequest($email, $additionalData, $memo, 'confirmed');
-	}
+    /**
+     * @param mixed $uriBuilder
+     */
+    public function setUriBuilder($uriBuilder)
+    {
+        $this->uriBuilder = $uriBuilder;
+    }
 
-	/**
-	 * @param string $authCodeContext
-	 */
-	public function setAuthCodeContext($authCodeContext) {
-		$this->authCodeContext = $authCodeContext;
-	}
+    /**
+     * @param TemplateView $view
+     */
+    public function setView(TemplateView $view)
+    {
+        $this->view = $view;
+    }
 
-	/**
-	 * @param mixed $uriBuilder
-	 */
-	public function setUriBuilder($uriBuilder) {
-		$this->uriBuilder = $uriBuilder;
-	}
+    /**
+     * Fetches the subscription state / data of an email address.
+     *
+     * @param string $email
+     * @return SubscribeStateResponse
+     */
+    protected function getSubscriptionState($email)
+    {
+        $subscribeStateResponse = $this->tellmaticClient->getSubscribeState($email);
+        return $subscribeStateResponse;
+    }
 
-	/**
-	 * @param TemplateView $view
-	 */
-	public function setView(TemplateView $view) {
-		$this->view = $view;
-	}
+    /**
+     * Subscribe requests of confirmed subscribers are handled as update requests.
+     *
+     * @param string $email
+     */
+    protected function handleSubscribeRequestOfConfirmedSubscriber($email)
+    {
+        $this->handleUpdateRequestOfConfirmedSubscriber($email);
+    }
 
-	/**
-	 * Fetches the subscription state / data of an email address.
-	 *
-	 * @param string $email
-	 * @return SubscribeStateResponse
-	 */
-	protected function getSubscriptionState($email) {
-		$subscribeStateResponse = $this->tellmaticClient->getSubscribeState($email);
-		return $subscribeStateResponse;
-	}
+    /**
+     * Adds the email / subscription data to the tellmatic database with state "waiting".
+     *
+     * Sends an auth code email with which the subscriber can confirm his subscription.
+     *
+     * @param string $email
+     * @param array $additionalData
+     * @param string $memo
+     */
+    protected function handleSubscribeRequestOfNonExistingSubscriber($email, array $additionalData, $memo)
+    {
+        $subject = 'Ihre Newsletteranmeldung';
 
-	/**
-	 * Subscribe requests of confirmed subscribers are handled as update requests.
-	 *
-	 * @param string $email
-	 */
-	protected function handleSubscribeRequestOfConfirmedSubscriber($email) {
-		$this->handleUpdateRequestOfConfirmedSubscriber($email);
-	}
+        $this->sendSubscribeRequest($email, $additionalData, $memo, 'waiting');
 
-	/**
-	 * Adds the email / subscription data to the tellmatic database with state "waiting".
-	 *
-	 * Sends an auth code email with which the subscriber can confirm his subscription.
-	 *
-	 * @param string $email
-	 * @param array $additionalData
-	 * @param string $memo
-	 */
-	protected function handleSubscribeRequestOfNonExistingSubscriber($email, array $additionalData, $memo) {
+        $authCode = $this->objectManager->get(AuthCode::class);
+        $this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
 
-		$subject = 'Ihre Newsletteranmeldung';
-
-		$this->sendSubscribeRequest($email, $additionalData, $memo, 'waiting');
-
-		$authCode = $this->objectManager->get(AuthCode::class);
-		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
-
-		$mailView = $this->mailUtility->getMailView('ConfirmSubscription', $this->settings['mail']['templatePath'], $this->view);
-		$this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
-
-		if($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
-			$subject = 'Neue Newsletteranmeldung';
-
-			$mailview = $this->mailUtility->getMailView('SubscribeRequestMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
-			$mailview->assign('email', $email);
-			$mailtext = $mailview->render();
-
-			$this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
-		}
-	}
-
-	/**
-	 * Subscribe requests of unconfirmed subscribers are handled as new subscribers.
-	 *
-	 * @param string $email
-	 * @param array $additionalData
-	 * @param string $memo
-	 */
-	protected function handleSubscribeRequestOfUnconfirmedSubscriber($email, array $additionalData, $memo) {
-		$this->handleSubscribeRequestOfNonExistingSubscriber($email, $additionalData, $memo);
-	}
-
-	/**
-	 * Sends an auth code mail in which the user finds links to update / remove his subscription.
-	 *
-	 * @param string $email
-	 */
-	protected function handleUpdateRequestOfConfirmedSubscriber($email) {
-
-		$subject = 'Ihre Newsletteranmeldung';
-
-		$authCode = $this->objectManager->get(AuthCode::class);
-		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
-
-		$mailView = $this->mailUtility->getMailView('UpdateSubscription', $this->settings['mail']['templatePath'], $this->view);
-		$this->mailUtility->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, $this->uriBuilder, TRUE);
-
-		if($this->settings['mail']['adminNotifications']['onUpdate']) {
-			$subject = 'Änderung Newsletterdaten';
-
-			$mailview = $this->mailUtility->getMailView('UpdateMessage', $this->settings['mail']['adminNotifications']['templatePath'], $this->view);
-			$mailview->assign('email', $email);
-			$mailtext = $mailview->render();
-
-			$this->mailUtility->sendMail($this->settings['mail']['adminNotifications']['addresses'], $subject, $mailtext);
-		}
-	}
-
-	/**
-	 * Sends a mail without any auth code links and a hint that the given email is not subscribed.
-	 *
-	 * @param string $email
-	 */
-	protected function handleUpdateRequestOfNonExistingSubscriber($email) {
-		$subject = 'Ihre Newsletteranmeldung';
-		$view = $this->mailUtility->getMailView('NoSubscription', $this->settings['mail']['templatePath'], $this->view);
-		$view->assign('email', $email);
-        $this->mailUtility->sendMail($email, $subject, $view->render());
-	}
-
-	/**
-	 * Generates an auth code mail with which the user can confirm his subscription.
-	 *
-	 * @param string $email
-	 */
-	protected function handleUpdateRequestOfUnconfirmedSubscriber($email) {
-
-		$subject = 'Ihre Newsletteranmeldung';
-
-		$authCode = $this->objectManager->get(AuthCode::class);
-		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
-
-		$mailView = $this->mailUtility->getMailView('ConfirmSubscription', $this->settings['mail']['templatePath'], $this->view);
+        $mailView = $this->mailUtility->getMailView(
+            'ConfirmSubscription',
+            $this->settings['mail']['templatePath'],
+            $this->view
+        );
         $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
-	}
 
-	/**
-	 * Sends a subscribe request to Tellmatic with the given parameters.
-	 *
-	 * @param string $email
-	 * @param array $additionalData
-	 * @param string $memo
-	 * @param string $status
-	 */
-	protected function sendSubscribeRequest($email, $additionalData, $memo, $status) {
-		/** @noinspection PhpMethodParametersCountMismatchInspection */
-		$subscribeRequest = $this->objectManager->get(SubscribeRequest::class, $email);
+        if ($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
+            $subject = 'Neue Newsletteranmeldung';
 
-		$additionalFields = array();
-		foreach (SubscribeRequest::getAllowedAdditionalFields() as $fieldName => $unused) {
-			if (!empty($additionalData[$fieldName])) {
-				$additionalFields[$fieldName] = $additionalData[$fieldName];
-			}
-		}
-		$subscribeRequest->setAdditionalFields($additionalFields);
+            $mailview = $this->mailUtility->getMailView(
+                'SubscribeRequestMessage',
+                $this->settings['mail']['adminNotifications']['templatePath'],
+                $this->view
+            );
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
 
-		$subscribeRequest->setDoNotSendEmails(TRUE);
-		$subscribeRequest->setOverrideAddressStatus($status);
-		$subscribeRequest->getMemo()->addLineToMemo($memo);
-		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-	}
+            $this->mailUtility->sendMail(
+                $this->settings['mail']['adminNotifications']['addresses'],
+                $subject,
+                $mailtext
+            );
+        }
+    }
+
+    /**
+     * Subscribe requests of unconfirmed subscribers are handled as new subscribers.
+     *
+     * @param string $email
+     * @param array $additionalData
+     * @param string $memo
+     */
+    protected function handleSubscribeRequestOfUnconfirmedSubscriber($email, array $additionalData, $memo)
+    {
+        $this->handleSubscribeRequestOfNonExistingSubscriber($email, $additionalData, $memo);
+    }
+
+    /**
+     * Sends an auth code mail in which the user finds links to update / remove his subscription.
+     *
+     * @param string $email
+     */
+    protected function handleUpdateRequestOfConfirmedSubscriber($email)
+    {
+        $subject = 'Ihre Newsletteranmeldung';
+
+        $authCode = $this->objectManager->get(AuthCode::class);
+        $this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
+
+        $mailView = $this->mailUtility->getMailView(
+            'UpdateSubscription',
+            $this->settings['mail']['templatePath'],
+            $this->view
+        );
+        $this->mailUtility->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, $this->uriBuilder, true);
+
+        if ($this->settings['mail']['adminNotifications']['onUpdate']) {
+            $subject = 'Änderung Newsletterdaten';
+
+            $mailview = $this->mailUtility->getMailView(
+                'UpdateMessage',
+                $this->settings['mail']['adminNotifications']['templatePath'],
+                $this->view
+            );
+            $mailview->assign('email', $email);
+            $mailtext = $mailview->render();
+
+            $this->mailUtility->sendMail(
+                $this->settings['mail']['adminNotifications']['addresses'],
+                $subject,
+                $mailtext
+            );
+        }
+    }
+
+    /**
+     * Sends a mail without any auth code links and a hint that the given email is not subscribed.
+     *
+     * @param string $email
+     */
+    protected function handleUpdateRequestOfNonExistingSubscriber($email)
+    {
+        $subject = 'Ihre Newsletteranmeldung';
+        $view = $this->mailUtility->getMailView('NoSubscription', $this->settings['mail']['templatePath'], $this->view);
+        $view->assign('email', $email);
+        $this->mailUtility->sendMail($email, $subject, $view->render());
+    }
+
+    /**
+     * Generates an auth code mail with which the user can confirm his subscription.
+     *
+     * @param string $email
+     */
+    protected function handleUpdateRequestOfUnconfirmedSubscriber($email)
+    {
+        $subject = 'Ihre Newsletteranmeldung';
+
+        $authCode = $this->objectManager->get(AuthCode::class);
+        $this->authCodeRepository->generateIndependentAuthCode($authCode, $email, $this->authCodeContext);
+
+        $mailView = $this->mailUtility->getMailView(
+            'ConfirmSubscription',
+            $this->settings['mail']['templatePath'],
+            $this->view
+        );
+        $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
+    }
+
+    /**
+     * Sends a subscribe request to Tellmatic with the given parameters.
+     *
+     * @param string $email
+     * @param array $additionalData
+     * @param string $memo
+     * @param string $status
+     */
+    protected function sendSubscribeRequest($email, $additionalData, $memo, $status)
+    {
+        /** @noinspection PhpMethodParametersCountMismatchInspection */
+        $subscribeRequest = $this->objectManager->get(SubscribeRequest::class, $email);
+
+        $additionalFields = [];
+        foreach (SubscribeRequest::getAllowedAdditionalFields() as $fieldName => $unused) {
+            if (!empty($additionalData[$fieldName])) {
+                $additionalFields[$fieldName] = $additionalData[$fieldName];
+            }
+        }
+        $subscribeRequest->setAdditionalFields($additionalFields);
+
+        $subscribeRequest->setDoNotSendEmails(true);
+        $subscribeRequest->setOverrideAddressStatus($status);
+        $subscribeRequest->getMemo()->addLineToMemo($memo);
+        $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+    }
 }

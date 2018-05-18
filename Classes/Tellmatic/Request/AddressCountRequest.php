@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Request;
 
 /*                                                                        *
@@ -14,59 +15,63 @@ namespace Sto\Tellmatic\Tellmatic\Request;
 /**
  * Request for counting addresses in the Tellmatic database.
  */
-class AddressCountRequest implements TellmaticRequestInterface {
+class AddressCountRequest implements TellmaticRequestInterface
+{
+    /**
+     * @var int
+     */
+    protected $groupId = 0;
 
-	/**
-	 * @var int
-	 */
-	protected $groupId = 0;
+    /**
+     * @var array
+     */
+    protected $search = [];
 
-	/**
-	 * @var array
-	 */
-	protected $search = array();
+    /**
+     * Initializes the given HTTP request with the required parameters.
+     *
+     * @param AccessibleHttpRequest $httpRequest
+     */
+    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest)
+    {
+        foreach ($this->search as $field => $value) {
+            $httpRequest->addPostParameter('search[' . $field . ']', $value);
+        }
 
-	/**
-	 * Initializes the given HTTP request with the required parameters.
-	 *
-	 * @param AccessibleHttpRequest $httpRequest
-	 */
-	public function initializeHttpRequest(AccessibleHttpRequest $httpRequest) {
+        if (!empty($this->groupId)) {
+            $httpRequest->addPostParameter('groupId', $this->groupId);
+        }
+    }
 
-		foreach ($this->search as $field => $value) {
-			$httpRequest->addPostParameter('search[' . $field . ']', $value);
-		}
+    /**
+     * @return int
+     */
+    public function getGroupId()
+    {
+        return $this->groupId;
+    }
 
-		if (!empty($this->groupId)) {
-			$httpRequest->addPostParameter('groupId', $this->groupId);
-		}
-	}
+    /**
+     * @return array
+     */
+    public function getSearch()
+    {
+        return $this->search;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getGroupId() {
-		return $this->groupId;
-	}
+    /**
+     * @param int $groupId
+     */
+    public function setGroupId($groupId)
+    {
+        $this->groupId = $groupId;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getSearch() {
-		return $this->search;
-	}
-
-	/**
-	 * @param int $groupId
-	 */
-	public function setGroupId($groupId) {
-		$this->groupId = $groupId;
-	}
-
-	/**
-	 * @param array $search
-	 */
-	public function setSearch(array $search) {
-		$this->search = $search;
-	}
+    /**
+     * @param array $search
+     */
+    public function setSearch(array $search)
+    {
+        $this->search = $search;
+    }
 }

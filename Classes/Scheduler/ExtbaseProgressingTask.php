@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Scheduler;
 
 /*                                                                        *
@@ -18,87 +19,91 @@ use TYPO3\CMS\Scheduler\ProgressProviderInterface;
  * This task behaves like the default Exbase command task but also provides
  * the progress of the current task.
  */
-class ExtbaseProgressingTask extends ExtbaseTask implements ProgressProviderInterface {
+class ExtbaseProgressingTask extends ExtbaseTask implements ProgressProviderInterface
+{
+    /**
+     * If an Exception occured during the last execute() call this variable contains
+     * a reference to the catched Exception.
+     *
+     * @var \Exception
+     */
+    protected $lastException;
 
-	/**
-	 * If an Exception occured during the last execute() call this variable contains
-	 * a reference to the catched Exception.
-	 *
-	 * @var \Exception
-	 */
-	protected $lastException;
+    /**
+     * Stores the current process in percent.
+     *
+     * @var float
+     */
+    protected $progress = 100;
 
-	/**
-	 * Stores the current process in percent.
-	 *
-	 * @var float
-	 */
-	protected $progress = 100;
+    /**
+     * We unset the last Exception because it can contain too much data that causes the serialization to fail.
+     */
+    public function __sleep()
+    {
+        $properties = parent::__sleep();
+        $index = array_search('lastException', $properties);
+        unset($properties[$index]);
+        return $properties;
+    }
 
-	/**
-	 * We unset the last Exception because it can contain too much data that causes the serialization to fail.
-	 */
-	public function __sleep() {
-		$properties = parent::__sleep();
-		$index = array_search('lastException', $properties);
-		unset($properties[$index]);
-		return $properties;
-	}
+    /**
+     * Function execute from the Scheduler
+     *
+     * @return boolean TRUE on successful execution, FALSE on error
+     */
+    public function execute()
+    {
+        $this->lastException = null;
 
-	/**
-	 * Function execute from the Scheduler
-	 *
-	 * @return boolean TRUE on successful execution, FALSE on error
-	 */
-	public function execute() {
+        $result = parent::execute();
 
-		$this->lastException = NULL;
+        // If progress is provided by the executed task save it.
+        if (isset($GLOBALS['tx_tellmatic_task_progress'])) {
+            $this->progress = (float)$GLOBALS['tx_tellmatic_task_progress'];
+            unset($GLOBALS['tx_tellmatic_task_progress']);
+        }
 
-		$result = parent::execute();
+        $schedulerAvailable = isset($this->scheduler);
 
-		// If progress is provided by the executed task save it.
-		if (isset($GLOBALS['tx_tellmatic_task_progress'])) {
-			$this->progress = (float)$GLOBALS['tx_tellmatic_task_progress'];
-			unset($GLOBALS['tx_tellmatic_task_progress']);
-		}
+        // We need to save the task to persist the progress.
+        $this->scheduler->saveTask($this);
 
-		$schedulerAvailable = isset($this->scheduler);
+        // Since saveTask unsets the scheduler we need to re-initialize it
+        // so that logging still works.
+        if ($schedulerAvailable) {
+            $this->setScheduler();
+        }
 
-		// We need to save the task to persist the progress.
-		$this->scheduler->saveTask($this);
+        return $result;
+    }
 
-		// Since saveTask unsets the scheduler we need to re-initialize it
-		// so that logging still works.
-		if ($schedulerAvailable) {
-			$this->setScheduler();
-		}
+    /**
+     * @return \Exception
+     */
+    public function getLastException()
+    {
+        return $this->lastException;
+    }
 
-		return $result;
-	}
+    /**
+     * Gets the progress of a task.
+     *
+     * @return float Progress of the task as a float value in percent.
+     */
+    public function getProgress()
+    {
+        return $this->progress;
+    }
 
-	/**
-	 * @return \Exception
-	 */
-	public function getLastException() {
-		return $this->lastException;
-	}
-
-	/**
-	 * Gets the progress of a task.
-	 *
-	 * @return float Progress of the task as a float value in percent.
-	 */
-	public function getProgress() {
-		return $this->progress;
-	}
-
-	/**
-	 * Stores the given Exception in the $lastException class variable and calls the parent method.
-	 *
-	 * @param \Exception $e
-	 */
-	protected function logException(\Exception $e) {
-		parent::logException($e);
-		$this->lastException = $e;
-	}
+    /**
+     * Stores the given Exception in the $lastException class variable and calls the parent method.
+     *
+     * @param \Exception $e
+     */
+    protected function logException(\Exception $e)
+    {
+        parent::logException($e);
+        $this->lastException = $e;
+    }
 }

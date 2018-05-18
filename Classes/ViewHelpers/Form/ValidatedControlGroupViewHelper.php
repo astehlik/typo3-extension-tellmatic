@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\ViewHelpers\Form;
 
 /*                                                                        *
@@ -16,79 +17,115 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 /**
  * Displays a tag with different classes depending on the validation state.
  */
-class ValidatedControlGroupViewHelper extends AbstractTagBasedViewHelper {
+class ValidatedControlGroupViewHelper extends AbstractTagBasedViewHelper
+{
+    /**
+     * Initialize all arguments.
+     *
+     * @return void
+     */
+    public function initializeArguments()
+    {
+        $this->registerUniversalTagAttributes();
 
-	/**
-	 * Initialize all arguments.
-	 *
-	 * @return void
-	 */
-	public function initializeArguments() {
+        $this->registerArgument(
+            'for',
+            'string',
+            'The name of the property for which the validation results should be checked.',
+            false,
+            ''
+        );
+        $this->registerArgument(
+            'as',
+            'string',
+            'The variable name in which the validation results should be stored.',
+            false,
+            'validationResults'
+        );
+        $this->registerArgument(
+            'defaultClass',
+            'string',
+            'This class will always be added to the list of classes for the tag unless it is empty.',
+            false,
+            'form-group'
+        );
+        $this->registerArgument(
+            'errorClass',
+            'string',
+            'The class that should be added when validation errors are found.',
+            false,
+            'has-error'
+        );
+        $this->registerArgument(
+            'warningClass',
+            'string',
+            'The class that should be added when validation warnings are found.',
+            false,
+            'has-warning'
+        );
+        $this->registerArgument(
+            'noticeClass',
+            'string',
+            'The class that should be added when validation notices are found.',
+            false,
+            'has-notice'
+        );
+        $this->registerArgument('tagName', 'string', 'The tag name that should be used. Defaults to "div".', false);
+    }
 
-		$this->registerUniversalTagAttributes();
+    /**
+     * Displays a form control group with different classes depending on the validation state.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        $for = $this->arguments['for'];
+        $as = $this->arguments['as'];
 
-		$this->registerArgument('for', 'string', 'The name of the property for which the validation results should be checked.', FALSE, '');
-		$this->registerArgument('as', 'string', 'The variable name in which the validation results should be stored.', FALSE, 'validationResults');
-		$this->registerArgument('defaultClass', 'string', 'This class will always be added to the list of classes for the tag unless it is empty.', FALSE, 'form-group');
-		$this->registerArgument('errorClass', 'string', 'The class that should be added when validation errors are found.', FALSE, 'has-error');
-		$this->registerArgument('warningClass', 'string', 'The class that should be added when validation warnings are found.', FALSE, 'has-warning');
-		$this->registerArgument('noticeClass', 'string', 'The class that should be added when validation notices are found.', FALSE, 'has-notice');
-		$this->registerArgument('tagName', 'string', 'The tag name that should be used. Defaults to "div".', FALSE);
-	}
+        if ($this->arguments['defaultClass'] !== '') {
+            $this->appendClassForTag($this->arguments['defaultClass']);
+        }
 
-	/**
-	 * Displays a form control group with different classes depending on the validation state.
-	 *
-	 * @return string
-	 */
-	public function render() {
+        if (!empty($this->arguments['tagName'])) {
+            $this->tag->setTagName($this->arguments['tagName']);
+        }
 
-		$for = $this->arguments['for'];
-		$as = $this->arguments['as'];
+        $validationResults = $this->controllerContext->getRequest()->getOriginalRequestMappingResults();
+        if ($validationResults !== null && $for !== '') {
+            $validationResults = $validationResults->forProperty($for);
+            if ($validationResults->hasErrors()) {
+                $this->appendClassForTag($this->arguments['errorClass']);
+            } elseif ($validationResults->hasWarnings()) {
+                $this->appendClassForTag($this->arguments['warningClass']);
+            } elseif ($validationResults->hasNotices()) {
+                $this->appendClassForTag($this->arguments['noticeClass']);
+            }
+        }
 
-		if ($this->arguments['defaultClass'] !== '') {
-			$this->appendClassForTag($this->arguments['defaultClass']);
-		}
+        $this->templateVariableContainer->add($as, ['validationResults' => $validationResults, 'for' => $for]);
 
-		if (!empty($this->arguments['tagName'])) {
-			$this->tag->setTagName($this->arguments['tagName']);
-		}
+        $this->tag->setContent($this->renderChildren());
+        $result = $this->tag->render();
 
-		$validationResults = $this->controllerContext->getRequest()->getOriginalRequestMappingResults();
-		if ($validationResults !== NULL && $for !== '') {
-			$validationResults = $validationResults->forProperty($for);
-			if ($validationResults->hasErrors()) {
-				$this->appendClassForTag($this->arguments['errorClass']);
-			} elseif ($validationResults->hasWarnings()) {
-				$this->appendClassForTag($this->arguments['warningClass']);
-			} elseif ($validationResults->hasNotices()) {
-				$this->appendClassForTag($this->arguments['noticeClass']);
-			}
-		}
+        $this->templateVariableContainer->remove($as);
 
-		$this->templateVariableContainer->add($as, array('validationResults' => $validationResults, 'for' => $for));
+        return $result;
+    }
 
-		$this->tag->setContent($this->renderChildren());
-		$result = $this->tag->render();
+    /**
+     * Appends the given class to the list of classes that the tag should get.
+     *
+     * @param string $class
+     */
+    protected function appendClassForTag($class)
+    {
+        $currentClass = $this->tag->getAttribute('class');
 
-		$this->templateVariableContainer->remove($as);
+        if (!empty($currentClass)) {
+            $class = $currentClass . ' ' . $class;
+        }
 
-		return $result;
-	}
-
-	/**
-	 * Appends the given class to the list of classes that the tag should get.
-	 *
-	 * @param string $class
-	 */
-	protected function appendClassForTag($class) {
-
-		$currentClass = $this->tag->getAttribute('class');
-
-		if (!empty($currentClass)) {
-			$class = $currentClass . ' ' . $class;
-		}
-
-		$this->tag->addAttribute('class', $class);
-	}
+        $this->tag->addAttribute('class', $class);
+    }
 }

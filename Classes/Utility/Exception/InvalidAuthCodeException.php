@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility\Exception;
 
 /*                                                                        *
@@ -14,14 +15,18 @@ namespace Sto\Tellmatic\Utility\Exception;
 /**
  * This Exception is thrown when an invalid auth code was submitted.
  */
-class InvalidAuthCodeException extends \Exception {
-
-	/**
-	 * @param string $message
-	 * @param int $code
-	 * @param \Exception|NULL $previous
-	 */
-	public function __construct($message = 'The submitted auth code is invalid.', $code = 1441802183, \Exception $previous = NULL) {
-		parent::__construct($message, $code, $previous);
-	}
+class InvalidAuthCodeException extends \Exception
+{
+    /**
+     * @param string $message
+     * @param int $code
+     * @param \Exception|NULL $previous
+     */
+    public function __construct(
+        $message = 'The submitted auth code is invalid.',
+        $code = 1441802183,
+        \Exception $previous = null
+    ) {
+        parent::__construct($message, $code, $previous);
+    }
 }

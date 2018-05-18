@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Formhandler;
 
 /*                                                                        *
@@ -19,38 +20,39 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * This finisher executes a Tellmatic subscribe request.
  * It uses the same field configuration as the DB finisher.
  */
-class SubscribeFinisher extends \Tx_Formhandler_AbstractFinisher {
+class SubscribeFinisher extends \Tx_Formhandler_AbstractFinisher
+{
+    /**
+     * Validates the submitted values using given settings
+     *
+     * @return array
+     */
+    public function process()
+    {
+        $exception = null;
 
-	/**
-	 * Validates the submitted values using given settings
-	 *
-	 * @return array
-	 */
-	public function process() {
+        try {
+            $this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
+        } catch (TellmaticException $exception) {
+            $errors['tellmatic'] = $exception->getFailureCode();
+        } catch (\Exception $exception) {
+            $errors['tellmatic'] = 'unknown';
+        }
 
-		$exception = NULL;
+        if (isset($exception)) {
+            $this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
+        }
 
-		try {
-			$this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
-		} catch (TellmaticException $exception) {
-			$errors['tellmatic'] = $exception->getFailureCode();
-		} catch (\Exception $exception) {
-			$errors['tellmatic'] = 'unknown';
-		}
+        return $this->gp;
+    }
 
-		if (isset($exception)) {
-			$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
-		}
-
-		return $this->gp;
-	}
-
-	/**
-	 * @return FormhandlerUtility
-	 */
-	protected function getFormhandlerUtility() {
-		$formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
-		$formahandlerUtility->initialize($this);
-		return $formahandlerUtility;
-	}
+    /**
+     * @return FormhandlerUtility
+     */
+    protected function getFormhandlerUtility()
+    {
+        $formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
+        $formahandlerUtility->initialize($this);
+        return $formahandlerUtility;
+    }
 }

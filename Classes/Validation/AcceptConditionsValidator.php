@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Validation;
 
 /*                                                                        *
@@ -17,34 +18,37 @@ use TYPO3\CMS\Extbase\Validation\Validator\BooleanValidator;
 /**
  * If settings.privacyPolicy.checkRequired is TRUE the given value needs also to be TRUE.
  */
-class AcceptConditionsValidator extends BooleanValidator {
+class AcceptConditionsValidator extends BooleanValidator
+{
+    /**
+     * @var array
+     */
+    protected $settings;
 
-	/**
-	 * @var array
-	 */
-	protected $settings;
+    /**
+     * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
+     */
+    public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager)
+    {
+        $this->settings = $configurationManager->getConfiguration(
+            ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS
+        );
+    }
 
-	/**
-	 * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
-	 */
-	public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager) {
-		$this->settings = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS);
-	}
+    /**
+     * Executes the parent boolean validation if settings.privacyPolicy.checkRequired is enabled.
+     *
+     * @param mixed $value The value that should be validated
+     * @return void
+     */
+    public function isValid($value)
+    {
+        if (empty($this->settings['privacyPolicy']['checkRequired'])) {
+            return;
+        }
 
-	/**
-	 * Executes the parent boolean validation if settings.privacyPolicy.checkRequired is enabled.
-	 *
-	 * @param mixed $value The value that should be validated
-	 * @return void
-	 */
-	public function isValid($value) {
+        $this->options['is'] = true;
 
-		if (empty($this->settings['privacyPolicy']['checkRequired'])) {
-			return;
-		}
-
-		$this->options['is'] = TRUE;
-
-		parent::isValid($value);
-	}
+        parent::isValid($value);
+    }
 }

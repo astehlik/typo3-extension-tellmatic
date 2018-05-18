@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility;
 
 /*                                                                        *
@@ -21,138 +22,140 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 /**
  * Provides access to the global extension configuration
  */
-class FormhandlerUtility implements SingletonInterface {
+class FormhandlerUtility implements SingletonInterface
+{
+    /**
+     * @var \Tx_Formhandler_Component_Manager
+     */
+    protected $componentManager;
 
-	/**
-	 * @var \Tx_Formhandler_Component_Manager
-	 */
-	protected $componentManager;
+    /**
+     * @var \Tx_Formhandler_Configuration
+     */
+    protected $configuration;
 
-	/**
-	 * @var \Tx_Formhandler_Configuration
-	 */
-	protected $configuration;
+    /**
+     * @var \Tx_Formhandler_Globals
+     */
+    protected $globals;
 
-	/**
-	 * @var \Tx_Formhandler_Globals
-	 */
-	protected $globals;
+    /**
+     * @var \Tx_Formhandler_UtilityFuncs
+     */
+    protected $utilityFuncs;
 
-	/**
-	 * @var \Tx_Formhandler_UtilityFuncs
-	 */
-	protected $utilityFuncs;
+    /**
+     * @param \Tx_Formhandler_AbstractClass $abstractClass
+     */
+    public function initialize(\Tx_Formhandler_AbstractClass $abstractClass)
+    {
+        $this->componentManager = $this->getProtectedProperty($abstractClass, 'componentManager');
+        $this->configuration = $this->getProtectedProperty($abstractClass, 'configuration');
+        $this->globals = $this->getProtectedProperty($abstractClass, 'globals');
+        $this->utilityFuncs = $this->getProtectedProperty($abstractClass, 'utilityFuncs');
+    }
 
-	/**
-	 * @param \Tx_Formhandler_AbstractClass $abstractClass
-	 */
-	public function initialize(\Tx_Formhandler_AbstractClass $abstractClass) {
-		$this->componentManager = $this->getProtectedProperty($abstractClass, 'componentManager');
-		$this->configuration = $this->getProtectedProperty($abstractClass, 'configuration');
-		$this->globals = $this->getProtectedProperty($abstractClass, 'globals');
-		$this->utilityFuncs = $this->getProtectedProperty($abstractClass, 'utilityFuncs');
-	}
+    /**
+     * @param array $gp
+     * @param array $settings
+     * @return array
+     */
+    public function parseFields(array $gp, array $settings)
+    {
+        if (!isset($settings['table'])) {
+            $settings['table'] = 'dummy';
+        }
 
-	/**
-	 * Builds and executes the subscribe request.
-	 *
-	 * @param array $gp
-	 * @param array $settings
-	 * @return TellmaticResponse
-	 */
-	public function sendSubscribeRequest($gp, $settings) {
+        /** @var \Tx_Formhandler_Finisher_DB $finisherDb */
+        $finisherDb = $this->makeFormhandlerInstance(\Tx_Formhandler_Finisher_DB::class);
+        $finisherDb->init($gp, $settings);
 
-		$queryFields = $this->parseFields($gp, $settings);
+        $method = new \ReflectionMethod(\Tx_Formhandler_Finisher_DB::class, 'parseFields');
+        $method->setAccessible(true);
+        return $method->invoke($finisherDb);
+    }
 
-		if (!isset($queryFields['email'])) {
-			throw new \RuntimeException('No email field was configured.');
-		}
+    /**
+     * Builds and executes the subscribe request.
+     *
+     * @param array $gp
+     * @param array $settings
+     * @return TellmaticResponse
+     */
+    public function sendSubscribeRequest($gp, $settings)
+    {
+        $queryFields = $this->parseFields($gp, $settings);
 
-		$email = $queryFields['email'];
-		unset($queryFields['email']);
+        if (!isset($queryFields['email'])) {
+            throw new \RuntimeException('No email field was configured.');
+        }
 
-		/**
-		 * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
-		 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
-		 * @var \Sto\Tellmatic\Tellmatic\Request\SubscribeRequest $subscribeRequest
-		 */
-		$objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-		$tellmaticClient = $objectManager->get(TellmaticClient::class);
-		$subscribeRequest = $objectManager->get(SubscribeRequest::class, $email);
-		$subscribeRequest->setAdditionalFields($queryFields);
+        $email = $queryFields['email'];
+        unset($queryFields['email']);
 
-		$validateOnly = $this->utilityFuncs->getSingle($settings, 'validateOnly');
-		if ($validateOnly) {
-			$subscribeRequest->setValidateOnly(TRUE);
-		}
+        /**
+         * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
+         * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
+         * @var \Sto\Tellmatic\Tellmatic\Request\SubscribeRequest $subscribeRequest
+         */
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        $tellmaticClient = $objectManager->get(TellmaticClient::class);
+        $subscribeRequest = $objectManager->get(SubscribeRequest::class, $email);
+        $subscribeRequest->setAdditionalFields($queryFields);
 
-		$doNotSendEmails = $this->utilityFuncs->getSingle($settings, 'doNotSendEmails');
-		if ($doNotSendEmails) {
-			$subscribeRequest->setDoNotSendEmails(TRUE);
-		}
+        $validateOnly = $this->utilityFuncs->getSingle($settings, 'validateOnly');
+        if ($validateOnly) {
+            $subscribeRequest->setValidateOnly(true);
+        }
 
-		$addressState = $this->utilityFuncs->getSingle($settings, 'addressState');
-		if (!empty($addressState)) {
-			$subscribeRequest->setOverrideAddressStatus($addressState);
-		}
+        $doNotSendEmails = $this->utilityFuncs->getSingle($settings, 'doNotSendEmails');
+        if ($doNotSendEmails) {
+            $subscribeRequest->setDoNotSendEmails(true);
+        }
 
-		$memo = $this->utilityFuncs->getSingle($settings, 'memo');
-		if (!empty($memo)) {
-			$subscribeRequest->getMemo()->addLineToMemo($memo);
-		}
+        $addressState = $this->utilityFuncs->getSingle($settings, 'addressState');
+        if (!empty($addressState)) {
+            $subscribeRequest->setOverrideAddressStatus($addressState);
+        }
 
-		$overrideSubscribeUrl = $this->utilityFuncs->getSingle($settings, 'overrideSubscribeUrl');
-		if (!empty($overrideSubscribeUrl)) {
-			$tellmaticClient->setCustomUrl($overrideSubscribeUrl);
-		}
+        $memo = $this->utilityFuncs->getSingle($settings, 'memo');
+        if (!empty($memo)) {
+            $subscribeRequest->getMemo()->addLineToMemo($memo);
+        }
 
-		return $tellmaticClient->sendSubscribeRequest($subscribeRequest);
-	}
+        $overrideSubscribeUrl = $this->utilityFuncs->getSingle($settings, 'overrideSubscribeUrl');
+        if (!empty($overrideSubscribeUrl)) {
+            $tellmaticClient->setCustomUrl($overrideSubscribeUrl);
+        }
 
-	/**
-	 * @param array $gp
-	 * @param array $settings
-	 * @return array
-	 */
-	public function parseFields(array $gp, array $settings) {
+        return $tellmaticClient->sendSubscribeRequest($subscribeRequest);
+    }
 
-		if (!isset($settings['table'])) {
-			$settings['table'] = 'dummy';
-		}
+    /**
+     * @param \Tx_Formhandler_AbstractClass $abstractClass
+     * @param string $propertyName
+     * @return mixed
+     */
+    protected function getProtectedProperty(\Tx_Formhandler_AbstractClass $abstractClass, $propertyName)
+    {
+        $class = new \ReflectionClass(get_class($abstractClass));
+        $property = $class->getProperty($propertyName);
+        $property->setAccessible(true);
+        return $property->getValue($abstractClass);
+    }
 
-		/** @var \Tx_Formhandler_Finisher_DB $finisherDb */
-		$finisherDb = $this->makeFormhandlerInstance(\Tx_Formhandler_Finisher_DB::class);
-		$finisherDb->init($gp, $settings);
-
-		$method = new \ReflectionMethod(\Tx_Formhandler_Finisher_DB::class, 'parseFields');
-		$method->setAccessible(TRUE);
-		return $method->invoke($finisherDb);
-	}
-
-	/**
-	 * @param \Tx_Formhandler_AbstractClass $abstractClass
-	 * @param string $propertyName
-	 * @return mixed
-	 */
-	protected function getProtectedProperty(\Tx_Formhandler_AbstractClass $abstractClass, $propertyName) {
-		$class = new \ReflectionClass(get_class($abstractClass));
-		$property = $class->getProperty($propertyName);
-		$property->setAccessible(TRUE);
-		return $property->getValue($abstractClass);
-	}
-
-	/**
-	 * @param string $class
-	 * @return object
-	 */
-	protected function makeFormhandlerInstance($class) {
-		return GeneralUtility::makeInstance(
-			$class,
-			$this->componentManager,
-			$this->configuration,
-			$this->globals,
-			$this->utilityFuncs
-		);
-	}
-
+    /**
+     * @param string $class
+     * @return object
+     */
+    protected function makeFormhandlerInstance($class)
+    {
+        return GeneralUtility::makeInstance(
+            $class,
+            $this->componentManager,
+            $this->configuration,
+            $this->globals,
+            $this->utilityFuncs
+        );
+    }
 }

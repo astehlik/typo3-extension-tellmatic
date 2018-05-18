@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Request;
 
 /*                                                                        *
@@ -11,13 +12,12 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-interface TellmaticRequestInterface {
-
-	/**
-	 * Initializes the given HTTP request with the required parameters.
-	 *
-	 * @param AccessibleHttpRequest $httpRequest
-	 */
-	public function initializeHttpRequest(AccessibleHttpRequest $httpRequest);
-
+interface TellmaticRequestInterface
+{
+    /**
+     * Initializes the given HTTP request with the required parameters.
+     *
+     * @param AccessibleHttpRequest $httpRequest
+     */
+    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest);
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\ViewHelpers\Form;
 
 /*                                                                        *
@@ -17,40 +18,43 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 /**
  * View helper for generating the options array for a select view helper.
  */
-class SelectOptionsViewHelper extends AbstractViewHelper {
+class SelectOptionsViewHelper extends AbstractViewHelper
+{
+    /**
+     * @var array
+     */
+    protected $settings;
 
-	/**
-	 * @var array
-	 */
-	protected $settings;
+    /**
+     * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
+     */
+    public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager)
+    {
+        $this->settings = $configurationManager->getConfiguration(
+            ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS
+        );
+    }
 
-	/**
-	 * @param \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface $configurationManager
-	 */
-	public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager) {
-		$this->settings = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS);
-	}
+    /**
+     * Generates the options array.
+     *
+     * @param string $fieldName
+     * @return array
+     */
+    public function render($fieldName)
+    {
+        $options = [];
 
-	/**
-	 * Generates the options array.
-	 *
-	 * @param string $fieldName
-	 * @return array
-	 */
-	public function render($fieldName) {
+        if (empty($this->settings['additionalFields'][$fieldName]['options'])) {
+            return $options;
+        }
 
-		$options = [];
+        foreach ($this->settings['additionalFields'][$fieldName]['options'] as $option) {
+            $label = $option['label'];
+            $value = isset($option['value']) ? $option['value'] : $label;
+            $options[$value] = $label;
+        }
 
-		if (empty($this->settings['additionalFields'][$fieldName]['options'])) {
-			return $options;
-		}
-
-		foreach ($this->settings['additionalFields'][$fieldName]['options'] as $option) {
-			$label = $option['label'];
-			$value = isset($option['value']) ? $option['value'] : $label;
-			$options[$value] = $label;
-		}
-
-		return $options;
-	}
+        return $options;
+    }
 }

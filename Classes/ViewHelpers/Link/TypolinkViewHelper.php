@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\ViewHelpers\Link;
 
 /*                                                                        *
@@ -16,33 +17,31 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 /**
  * View helper that accepts a TypoLink parameter
  */
-class TypolinkViewHelper extends AbstractViewHelper {
+class TypolinkViewHelper extends AbstractViewHelper
+{
+    /**
+     * @var \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface
+     * @inject
+     */
+    protected $configurationManager;
 
-	/**
-	 * @var \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface
-	 * @inject
-	 */
-	protected $configurationManager;
+    /**
+     * Renders a TypoLink
+     *
+     * @param string $parameter
+     * @param array $aTagParams
+     * @return string
+     */
+    public function render($parameter, array $aTagParams = null)
+    {
+        $contentObject = $this->configurationManager->getContentObject();
 
-	/**
-	 * Renders a TypoLink
-	 *
-	 * @param string $parameter
-	 * @param array $aTagParams
-	 * @return string
-	 */
-	public function render($parameter, array $aTagParams = NULL) {
+        $config = ['parameter' => $parameter];
 
-		$contentObject = $this->configurationManager->getContentObject();
+        if (isset($aTagParams)) {
+            $config['ATagParams'] = \TYPO3\CMS\Core\Utility\GeneralUtility::implodeAttributes($aTagParams);
+        }
 
-		$config = array(
-			'parameter' => $parameter,
-		);
-
-		if (isset($aTagParams)) {
-			$config['ATagParams'] = \TYPO3\CMS\Core\Utility\GeneralUtility::implodeAttributes($aTagParams);
-		}
-
-		return $contentObject->typoLink($this->renderChildren(), $config);
-	}
+        return $contentObject->typoLink($this->renderChildren(), $config);
+    }
 }

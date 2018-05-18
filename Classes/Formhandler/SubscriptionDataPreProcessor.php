@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Formhandler;
 
 /*                                                                        *
@@ -20,70 +21,74 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 /**
  * Runs different finishers depending on the current Tellmatic subscription state.
  */
-class SubscriptionDataPreProcessor extends \Tx_Formhandler_AbstractPreProcessor {
+class SubscriptionDataPreProcessor extends \Tx_Formhandler_AbstractPreProcessor
+{
+    /**
+     * Checks, if the subscriber exists and calls the sub-finishers accordingly
+     *
+     * @return string|array The output that should be displayed to the user (if any) or the GET/POST data array
+     */
+    public function process()
+    {
+        $queryFields = $this->getFormhandlerUtility()->parseFields($this->gp, $this->settings);
 
-	/**
-	 * Checks, if the subscriber exists and calls the sub-finishers accordingly
-	 *
-	 * @return string|array The output that should be displayed to the user (if any) or the GET/POST data array
-	 */
-	public function process() {
+        if (empty($queryFields['email'])) {
+            throw new \RuntimeException('Required field email is empty.');
+        }
 
-		$queryFields = $this->getFormhandlerUtility()->parseFields($this->gp, $this->settings);
+        $email = $queryFields['email'];
 
-		if (empty($queryFields['email'])) {
-			throw new \RuntimeException('Required field email is empty.');
-		}
+        if (!GeneralUtility::validEmail($email)) {
+            throw new \RuntimeException(
+                'An invalid email was submitted. Please configure a validator to prevent this.'
+            );
+        }
 
-		$email = $queryFields['email'];
+        /**
+         * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
+         * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
+         */
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        $tellmaticClient = $objectManager->get(TellmaticClient::class);
+        $tellmaticResponse = $tellmaticClient->getSubscribeState($email);
 
-		if (!GeneralUtility::validEmail($email)) {
-			throw new \RuntimeException('An invalid email was submitted. Please configure a validator to prevent this.');
-		}
+        switch ($tellmaticResponse->getSubscribeState()) {
+            case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
+            case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
+                $this->mergeAddressDataToGpArray($tellmaticResponse->getAddressData());
+                break;
+        }
 
-		/**
-		 * @var \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
-		 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient $tellmaticClient
-		 */
-		$objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-		$tellmaticClient = $objectManager->get(TellmaticClient::class);
-		$tellmaticResponse = $tellmaticClient->getSubscribeState($email);
+        return $this->gp;
+    }
 
-		switch ($tellmaticResponse->getSubscribeState()) {
-			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_UNCONFIRMED:
-			case SubscribeStateResponse::SUBSCRIBE_STATE_SUBSCRIBED_CONFIRMED:
-				$this->mergeAddressDataToGpArray($tellmaticResponse->getAddressData());
-				break;
-		}
+    /**
+     * @return FormhandlerUtility
+     */
+    protected function getFormhandlerUtility()
+    {
+        $formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
+        $formahandlerUtility->initialize($this);
+        return $formahandlerUtility;
+    }
 
-		return $this->gp;
-	}
+    /**
+     * @param array $addressData
+     */
+    protected function mergeAddressDataToGpArray(array $addressData)
+    {
+        if (!is_array($this->settings['mapAddressFields.'])) {
+            return;
+        }
 
-	/**
-	 * @return FormhandlerUtility
-	 */
-	protected function getFormhandlerUtility() {
-		$formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
-		$formahandlerUtility->initialize($this);
-		return $formahandlerUtility;
-	}
+        foreach ($this->settings['mapAddressFields.'] as $addressField => $gpField) {
+            if (!isset($addressData[$addressField])) {
+                throw new \InvalidArgumentException(
+                    'The configured address field ' . $addressField . ' does not exist.'
+                );
+            }
 
-	/**
-	 * @param array $addressData
-	 */
-	protected function mergeAddressDataToGpArray(array $addressData) {
-
-		if (!is_array($this->settings['mapAddressFields.'])) {
-			return;
-		}
-
-		foreach ($this->settings['mapAddressFields.'] as $addressField => $gpField) {
-
-			if (!isset($addressData[$addressField])) {
-				throw new \InvalidArgumentException('The configured address field ' . $addressField . ' does not exist.');
-			}
-
-			$this->gp[$gpField] = $addressData[$addressField];
-		}
-	}
+            $this->gp[$gpField] = $addressData[$addressField];
+        }
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
@@ -14,14 +15,15 @@ namespace Sto\Tellmatic\Tellmatic\Exception;
 /**
  * An invalid email was detected by the Tellmatic API.
  */
-class InvalidEmailException extends TellmaticException {
-
-	/**
-	 * @param array $responseData
-	 * @param int $code
-	 * @param null $previous
-	 */
-	public function __construct(array $responseData, $code = 1441711256, $previous = NULL) {
-		parent::__construct($responseData, $code, $previous);
-	}
+class InvalidEmailException extends TellmaticException
+{
+    /**
+     * @param array $responseData
+     * @param int $code
+     * @param null $previous
+     */
+    public function __construct(array $responseData, $code = 1441711256, $previous = null)
+    {
+        parent::__construct($responseData, $code, $previous);
+    }
 }

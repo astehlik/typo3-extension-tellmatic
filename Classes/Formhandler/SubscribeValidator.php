@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Formhandler;
 
 /*                                                                        *
@@ -19,49 +20,52 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * This finisher executes a Tellmatic subscribe request.
  * It uses the same field configuration as the DB finisher.
  */
-class SubscribeValidator extends \Tx_Formhandler_AbstractValidator {
+class SubscribeValidator extends \Tx_Formhandler_AbstractValidator
+{
+    /**
+     * Validates the submitted values using given settings
+     *
+     * @param array $errors Reference to the errors array to store the errors occurred
+     * @return boolean
+     */
+    public function validate(&$errors)
+    {
+        // If there are already errors we do not proceed
+        if (count($errors)) {
+            $this->utilityFuncs->debugMessage(
+                'Skipping tellmatic subscription since previous errors have been detected.'
+            );
+            return false;
+        }
 
-	/**
-	 * Validates the submitted values using given settings
-	 *
-	 * @param array $errors Reference to the errors array to store the errors occurred
-	 * @return boolean
-	 */
-	public function validate(&$errors) {
+        $exception = null;
+        $success = false;
 
-		// if there are already errors we do not proceed
-		if (count($errors)) {
-			$this->utilityFuncs->debugMessage('Skipping tellmatic subscription since previous errors have been detected.');
-			return FALSE;
-		}
+        $this->settings['validateOnly'] = 1;
 
-		$exception = NULL;
-		$success = FALSE;
+        try {
+            $this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
+            $success = true;
+        } catch (TellmaticException $exception) {
+            $errors['tellmatic'] = $exception->getFailureCode();
+        } catch (\Exception $exception) {
+            $errors['tellmatic'] = 'unknown';
+        }
 
-		$this->settings['validateOnly'] = 1;
+        if (isset($exception)) {
+            $this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
+        }
 
-		try {
-			$this->getFormhandlerUtility()->sendSubscribeRequest($this->gp, $this->settings);
-			$success = TRUE;
-		} catch (TellmaticException $exception) {
-			$errors['tellmatic'] = $exception->getFailureCode();
-		} catch (\Exception $exception) {
-			$errors['tellmatic'] = 'unknown';
-		}
+        return $success;
+    }
 
-		if (isset($exception)) {
-			$this->utilityFuncs->debugMessage('Exception during tellmatic request: ' . $exception->getMessage());
-		}
-
-		return $success;
-	}
-
-	/**
-	 * @return FormhandlerUtility
-	 */
-	protected function getFormhandlerUtility() {
-		$formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
-		$formahandlerUtility->initialize($this);
-		return $formahandlerUtility;
-	}
+    /**
+     * @return FormhandlerUtility
+     */
+    protected function getFormhandlerUtility()
+    {
+        $formahandlerUtility = GeneralUtility::makeInstance(FormhandlerUtility::class);
+        $formahandlerUtility->initialize($this);
+        return $formahandlerUtility;
+    }
 }

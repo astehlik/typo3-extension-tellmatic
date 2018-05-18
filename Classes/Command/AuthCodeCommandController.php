@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Command;
 
 /*                                                                        *
@@ -22,177 +23,190 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 /**
  * Command controller for filling the solor index queue.
  */
-class AuthCodeCommandController extends CommandController {
+class AuthCodeCommandController extends CommandController
+{
+    const AUTH_CODE_CONTEXT = 'tellmatic_persistent';
 
-	const AUTH_CODE_CONTEXT = 'tellmatic_persistent';
+    /**
+     * @inject
+     * @var \Tx\Authcode\Domain\Repository\AuthCodeRepository
+     */
+    protected $authCodeRepository;
 
-	/**
-	 * @inject
-	 * @var \Tx\Authcode\Domain\Repository\AuthCodeRepository
-	 */
-	protected $authCodeRepository;
+    /**
+     * @var \TYPO3\CMS\Core\Log\Logger
+     */
+    protected $logger;
 
-	/**
-	 * @var \TYPO3\CMS\Core\Log\Logger
-	 */
-	protected $logger;
+    /**
+     * @inject
+     * @var \TYPO3\CMS\Core\Registry
+     */
+    protected $registry;
 
-	/**
-	 * @inject
-	 * @var \TYPO3\CMS\Core\Registry
-	 */
-	protected $registry;
+    /**
+     * @inject
+     * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
+     */
+    protected $tellmaticClient;
 
-	/**
-	 * @inject
-	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
-	 */
-	protected $tellmaticClient;
+    /**
+     * @param \TYPO3\CMS\Core\Log\LogManager $logManager
+     */
+    public function injectLogManager(\TYPO3\CMS\Core\Log\LogManager $logManager)
+    {
+        $this->logger = $logManager->getLogger(__CLASS__);
+    }
 
-	/**
-	 * @param \TYPO3\CMS\Core\Log\LogManager $logManager
-	 */
-	public function injectLogManager(\TYPO3\CMS\Core\Log\LogManager $logManager) {
-		$this->logger = $logManager->getLogger(__CLASS__);
-	}
+    /**
+     * Refresh all auth codes.
+     *
+     * @param int $itemCountPerRun The number of auth codes that are refreshed during one run.
+     * @param string $refreshInterval The time betweeen a new synchronization run.
+     * @param bool $forceNewRun Ignore refresh interval and force the start of a new run.
+     * @throws \Exception
+     */
+    public function refreshCodesCommand($itemCountPerRun = 20, $refreshInterval = '1 day', $forceNewRun = false)
+    {
+        /** @var OffsetIterator $offsetIterator */
+        $offsetIterator = $this->registry->get(
+            __CLASS__,
+            'refreshCodesAddressOffset',
+            $this->objectManager->get(OffsetIterator::class)
+        );
+        $lastRunStartTime = $this->registry->get(__CLASS__, 'refreshCodesLastRunStartTime', null);
 
-	/**
-	 * Refresh all auth codes.
-	 *
-	 * @param int $itemCountPerRun The number of auth codes that are refreshed during one run.
-	 * @param string $refreshInterval The time betweeen a new synchronization run.
-	 * @param bool $forceNewRun Ignore refresh interval and force the start of a new run.
-	 * @throws \Exception
-	 */
-	public function refreshCodesCommand($itemCountPerRun = 20, $refreshInterval = '1 day', $forceNewRun = FALSE) {
+        if (!$offsetIterator->valid()) {
+            if ($forceNewRun || $this->startNewRun($lastRunStartTime, $refreshInterval)) {
+                $this->logger->info('Starting new address code sync run.');
+                $this->registry->set(__CLASS__, 'refreshCodesLastRunStartTime', new \DateTime());
+                $offsetIterator->rewind();
+            } else {
+                $this->logger->info('No more address records available for synchronization.');
+                $GLOBALS['tx_tellmatic_task_progress'] = 100;
+                return;
+            }
+        }
 
-		/** @var OffsetIterator $offsetIterator */
-		$offsetIterator = $this->registry->get(__CLASS__, 'refreshCodesAddressOffset', $this->objectManager->get(OffsetIterator::class));
-		$lastRunStartTime = $this->registry->get(__CLASS__, 'refreshCodesLastRunStartTime', NULL);
+        try {
+            $addressCount = $this->getAddressCount();
+            $addresses = $this->getAddresses($offsetIterator->current(), $itemCountPerRun);
+            $processedItemCount = 0;
 
-		if (!$offsetIterator->valid()) {
-			if ($forceNewRun || $this->startNewRun($lastRunStartTime, $refreshInterval)) {
-				$this->logger->info('Starting new address code sync run.');
-				$this->registry->set(__CLASS__, 'refreshCodesLastRunStartTime', new \DateTime());
-				$offsetIterator->rewind();
-			} else {
-				$this->logger->info('No more address records available for synchronization.');
-				$GLOBALS['tx_tellmatic_task_progress'] = 100;
-				return;
-			}
-		}
+            foreach ($addresses as $address) {
+                $this->updateCodeForAddress((int)$address['id'], $address['email'], $address['code_external']);
+                $processedItemCount++;
+            }
+        } catch (\Exception $e) {
+            $this->logger->critical($e->getMessage());
+            $this->logger->error($e->getTraceAsString());
+            throw $e;
+        }
 
-		try {
-			$addressCount = $this->getAddressCount();
-			$addresses = $this->getAddresses($offsetIterator->current(), $itemCountPerRun);
-			$processedItemCount = 0;
+        $offsetIterator->next($processedItemCount, $itemCountPerRun, $addressCount);
+        $this->registry->set(__CLASS__, 'refreshCodesAddressOffset', $offsetIterator);
 
-			foreach ($addresses as $address) {
-				$this->updateCodeForAddress((int)$address['id'], $address['email'], $address['code_external']);
-				$processedItemCount++;
-			}
-		} catch (\Exception $e) {
-			$this->logger->critical($e->getMessage());
-			$this->logger->error($e->getTraceAsString());
-			throw $e;
-		}
+        $progress = $offsetIterator->getProgressInPercent();
+        $this->logger->info(
+            sprintf(
+                'Updated %d address codes, total record count is %d, progress is %f.',
+                $processedItemCount,
+                $addressCount,
+                $progress
+            )
+        );
+        $GLOBALS['tx_tellmatic_task_progress'] = $progress;
+    }
 
-		$offsetIterator->next($processedItemCount, $itemCountPerRun, $addressCount);
-		$this->registry->set(__CLASS__, 'refreshCodesAddressOffset', $offsetIterator);
+    /**
+     * Returns the number of existing addresses.
+     *
+     * @return int
+     */
+    protected function getAddressCount()
+    {
+        $addressCountRequest = GeneralUtility::makeInstance(AddressCountRequest::class);
 
-		$progress = $offsetIterator->getProgressInPercent();
-		$this->logger->info(sprintf('Updated %d address codes, total record count is %d, progress is %f.', $processedItemCount, $addressCount, $progress));
-		$GLOBALS['tx_tellmatic_task_progress'] = $progress;
-	}
+        $result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
 
-	/**
-	 * Returns the number of existing addresses.
-	 *
-	 * @return int
-	 */
-	protected function getAddressCount() {
+        $addressCount = $result->getAddressCount();
 
-		$addressCountRequest = GeneralUtility::makeInstance(AddressCountRequest::class);
+        $this->logger->info(sprintf('Found %d address records in the database.', $addressCount));
 
-		$result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
+        return $addressCount;
+    }
 
-		$addressCount = $result->getAddressCount();
+    /**
+     * Returns all addresses from the given offset with the given limit.
+     *
+     * @param int $offset
+     * @param int $limit
+     * @return array
+     */
+    protected function getAddresses($offset, $limit)
+    {
+        $addressSearchRequest = GeneralUtility::makeInstance(AddressSearchRequest::class);
+        $addressSearchRequest->setOffset($offset);
+        $addressSearchRequest->setLimit($limit);
 
-		$this->logger->info(sprintf('Found %d address records in the database.', $addressCount));
+        $response = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
+        return $response->getAddresses();
+    }
 
-		return $addressCount;
-	}
+    /**
+     * Determines if a new run should be started.
+     *
+     * @param \DateTime $lastRunStartTime
+     * @param string $refreshInterval
+     * @return bool
+     */
+    protected function startNewRun($lastRunStartTime, $refreshInterval)
+    {
+        if (!isset($lastRunStartTime)) {
+            return true;
+        }
 
-	/**
-	 * Returns all addresses from the given offset with the given limit.
-	 *
-	 * @param int $offset
-	 * @param int $limit
-	 * @return array
-	 */
-	protected function getAddresses($offset, $limit) {
+        $nextRunTime = strtotime($refreshInterval, $lastRunStartTime->getTimestamp());
+        if (!$nextRunTime) {
+            throw new \InvalidArgumentException('The refresh interval for the auth code regeneration is invalid.');
+        }
 
-		$addressSearchRequest = GeneralUtility::makeInstance(AddressSearchRequest::class);
-		$addressSearchRequest->setOffset($offset);
-		$addressSearchRequest->setLimit($limit);
+        $this->logger->debug(sprintf('Next run time is: %s, current time is: %s', date('c', $nextRunTime), date('c')));
 
-		$response = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
-		return $response->getAddresses();
-	}
+        if ($nextRunTime > time()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
-	/**
-	 * Determines if a new run should be started.
-	 *
-	 * @param \DateTime $lastRunStartTime
-	 * @param string $refreshInterval
-	 * @return bool
-	 */
-	protected function startNewRun($lastRunStartTime, $refreshInterval) {
+    /**
+     * Updates the auth code for the given address.
+     *
+     * @param int $addressId
+     * @param string $email
+     * @param string $currentAuthCode
+     */
+    protected function updateCodeForAddress($addressId, $email, $currentAuthCode)
+    {
+        if (!empty($currentAuthCode)) {
+            $currentAuthCode = $this->authCodeRepository->findOneByAuthCode($currentAuthCode);
+            if (isset($currentAuthCode)
+                && $currentAuthCode->getIdentifier() === $email
+                && $currentAuthCode->getIdentifierContext() === static::AUTH_CODE_CONTEXT
+            ) {
+                $this->logger->debug(
+                    sprintf('Auth code for email %s already exists and matches. Skipping regeneration.', $email)
+                );
+                return;
+            }
+        }
 
-		if (!isset($lastRunStartTime)) {
-			return TRUE;
-		}
+        $authCode = $this->objectManager->get(AuthCode::class);
+        $this->authCodeRepository->setAuthCodeExpiryTime('+ 1 year');
+        $this->authCodeRepository->generateIndependentAuthCode($authCode, $email, static::AUTH_CODE_CONTEXT);
 
-		$nextRunTime = strtotime($refreshInterval, $lastRunStartTime->getTimestamp());
-		if (!$nextRunTime) {
-			throw new \InvalidArgumentException('The refresh interval for the auth code regeneration is invalid.');
-		}
-
-		$this->logger->debug(sprintf('Next run time is: %s, current time is: %s', date('c', $nextRunTime), date('c')));
-
-		if ($nextRunTime > time()) {
-			return FALSE;
-		} else {
-			return TRUE;
-		}
-	}
-
-	/**
-	 * Updates the auth code for the given address.
-	 *
-	 * @param int $addressId
-	 * @param string $email
-	 * @param string $currentAuthCode
-	 */
-	protected function updateCodeForAddress($addressId, $email, $currentAuthCode) {
-
-		if (!empty($currentAuthCode)) {
-			$currentAuthCode = $this->authCodeRepository->findOneByAuthCode($currentAuthCode);
-			if (
-				isset($currentAuthCode)
-				&& $currentAuthCode->getIdentifier() === $email
-				&& $currentAuthCode->getIdentifierContext() === static::AUTH_CODE_CONTEXT
-			) {
-				$this->logger->debug(sprintf('Auth code for email %s already exists and matches. Skipping regeneration.', $email));
-				return;
-			}
-		}
-
-		$authCode = $this->objectManager->get(AuthCode::class);
-		$this->authCodeRepository->setAuthCodeExpiryTime('+ 1 year');
-		$this->authCodeRepository->generateIndependentAuthCode($authCode, $email, static::AUTH_CODE_CONTEXT);
-
-		$setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $authCode->getAuthCode());
-		$this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
-	}
+        $setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $authCode->getAuthCode());
+        $this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
+    }
 }

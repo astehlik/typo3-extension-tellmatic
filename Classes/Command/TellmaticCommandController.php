@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Command;
 
 /*                                                                        *
@@ -22,183 +23,193 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 /**
  * Tellmatic API commands.
  */
-class TellmaticCommandController extends CommandController {
+class TellmaticCommandController extends CommandController
+{
+    /**
+     * @inject
+     * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
+     */
+    protected $tellmaticClient;
 
-	/**
-	 * @inject
-	 * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
-	 */
-	protected $tellmaticClient;
+    /**
+     * Counts the addresses in the DB.
+     *
+     * @param array $search
+     * @param int $groupId
+     */
+    public function addressCountCommand(array $search = [], $groupId = 0)
+    {
+        $addressCountRequest = GeneralUtility::makeInstance(AddressCountRequest::class);
+        $addressCountRequest->setSearch($search);
+        $addressCountRequest->setGroupId($groupId);
+        $result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
+        $this->outputLine('Address count is: ' . $result->getAddressCount());
+    }
 
-	/**
-	 * Counts the addresses in the DB.
-	 *
-	 * @param array $search
-	 * @param int $groupId
-	 */
-	public function addressCountCommand(array $search = array(), $groupId = 0) {
-		$addressCountRequest = GeneralUtility::makeInstance(AddressCountRequest::class);
-		$addressCountRequest->setSearch($search);
-		$addressCountRequest->setGroupId($groupId);
-		$result = $this->tellmaticClient->sendAddressCountRequest($addressCountRequest);
-		$this->outputLine('Address count is: ' . $result->getAddressCount());
-	}
+    /**
+     * Counts the addresses in the DB.
+     *
+     * @param array $search
+     * @param int $groupId
+     */
+    public function addressSearchCommand(array $search = [], $groupId = 0)
+    {
+        $addressSearchRequest = GeneralUtility::makeInstance(AddressSearchRequest::class);
+        $addressSearchRequest->setSearch($search);
+        $addressSearchRequest->setGroupId($groupId);
+        $result = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
+        foreach ($result->getAddresses() as $address) {
+            $this->outputLine('Found address ' . $address['email'] . ' with ID ' . $address['id']);
+        }
+    }
 
-	/**
-	 * Counts the addresses in the DB.
-	 *
-	 * @param array $search
-	 * @param int $groupId
-	 */
-	public function addressSearchCommand(array $search = array(), $groupId = 0) {
-		$addressSearchRequest = GeneralUtility::makeInstance(AddressSearchRequest::class);
-		$addressSearchRequest->setSearch($search);
-		$addressSearchRequest->setGroupId($groupId);
-		$result = $this->tellmaticClient->sendAddressSearchRequest($addressSearchRequest);
-		foreach ($result->getAddresses() as $address) {
-			$this->outputLine('Found address ' . $address['email'] . ' with ID ' . $address['id']);
-		}
-	}
+    /**
+     * Sets the code_external.
+     *
+     * @param int $addressId
+     * @param string $code
+     */
+    public function setCodeCommand($addressId, $code)
+    {
+        $setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $code);
+        $this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
+        $this->outputLine('The code was set successfully.');
+    }
 
-	/**
-	 * Sets the code_external.
-	 *
-	 * @param int $addressId
-	 * @param string $code
-	 */
-	public function setCodeCommand($addressId, $code) {
-		$setCodeRequest = GeneralUtility::makeInstance(SetCodeRequest::class, $addressId, $code);
-		$this->tellmaticClient->sendSetCodeRequest($setCodeRequest);
-		$this->outputLine('The code was set successfully.');
-	}
+    /**
+     * Sends a subscribe request.
+     *
+     * @param string $email
+     * @param bool $doNotSendEmails
+     * @param bool $validateOnly
+     * @param string $overrideAddressStatus
+     * @param string $memo
+     * @param string $f0
+     * @param string $f1
+     * @param string $f2
+     * @param string $f3
+     * @param string $f4
+     * @param string $f5
+     * @param string $f6
+     * @param string $f7
+     * @param string $f8
+     * @param string $f9
+     */
+    public function subscribeCommand(
+        $email,
+        $doNotSendEmails = false,
+        $validateOnly = false,
+        $overrideAddressStatus = null,
+        $memo = '',
+        /** @noinspection PhpUnusedParameterInspection */
+        $f0 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f1 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f2 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f3 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f4 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f5 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f6 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f7 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f8 = null,
+        /** @noinspection PhpUnusedParameterInspection */
+        $f9 = null
+    ) {
+        $subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $email);
 
-	/**
-	 * Sends a subscribe request.
-	 *
-	 * @param string $email
-	 * @param bool $doNotSendEmails
-	 * @param bool $validateOnly
-	 * @param string $overrideAddressStatus
-	 * @param string $memo
-	 * @param string $f0
-	 * @param string $f1
-	 * @param string $f2
-	 * @param string $f3
-	 * @param string $f4
-	 * @param string $f5
-	 * @param string $f6
-	 * @param string $f7
-	 * @param string $f8
-	 * @param string $f9
-	 */
-	public function subscribeCommand(
-		$email,
-		$doNotSendEmails = FALSE,
-		$validateOnly = FALSE,
-		$overrideAddressStatus = NULL,
-		$memo = '',
-		/** @noinspection PhpUnusedParameterInspection */
-		$f0 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f1 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f2 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f3 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f4 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f5 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f6 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f7 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f8 = NULL,
-		/** @noinspection PhpUnusedParameterInspection */
-		$f9 = NULL
-	) {
-		$subscribeRequest = GeneralUtility::makeInstance(SubscribeRequest::class, $email);
+        if ($doNotSendEmails) {
+            $subscribeRequest->setDoNotSendEmails(true);
+        }
 
-		if ($doNotSendEmails) {
-			$subscribeRequest->setDoNotSendEmails(TRUE);
-		}
+        if ($validateOnly) {
+            $subscribeRequest->setValidateOnly(true);
+        }
 
-		if ($validateOnly) {
-			$subscribeRequest->setValidateOnly(TRUE);
-		}
+        if (isset($overrideAddressStatus)) {
+            $subscribeRequest->setOverrideAddressStatus($overrideAddressStatus);
+        }
 
-		if (isset($overrideAddressStatus)) {
-			$subscribeRequest->setOverrideAddressStatus($overrideAddressStatus);
-		}
+        $additionalFields = [];
+        for ($i = 0; $i <= 9; $i++) {
+            $variable = 'f' . $i;
+            if (isset($$variable)) {
+                $additionalFields[$variable] = $$variable;
+            }
+        }
+        if (!empty($additionalFields)) {
+            $subscribeRequest->setAdditionalFields($additionalFields);
+        }
 
-		$additionalFields = array();
-		for ($i = 0; $i <= 9; $i++) {
-			$variable = 'f' . $i;
-			if (isset($$variable)) {
-				$additionalFields[$variable] = $$variable;
-			}
-		}
-		if (!empty($additionalFields)) {
-			$subscribeRequest->setAdditionalFields($additionalFields);
-		}
+        if (!empty($memo)) {
+            $subscribeRequest->getMemo()->addLineToMemo($memo);
+        }
 
-		if (!empty($memo)) {
-			$subscribeRequest->getMemo()->addLineToMemo($memo);
-		}
+        $subscribeRequest->getMemo()->addLineToMemo('subscribeCommand of TellmaticCommandController');
 
-		$subscribeRequest->getMemo()->addLineToMemo('subscribeCommand of TellmaticCommandController');
+        $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+        $this->outputLine('Subscription was successful.');
+    }
 
-		$this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
-		$this->outputLine('Subscription was successful.');
-	}
+    /**
+     * Shows the subscribe status.
+     *
+     * @param string $email
+     */
+    public function subsribeStatusCommand($email)
+    {
+        $this->outputLine($this->tellmaticClient->getSubscribeState($email)->getSubscribeState());
+    }
 
-	/**
-	 * Shows the subscribe status.
-	 *
-	 * @param string $email
-	 */
-	public function subsribeStatusCommand($email) {
-		$this->outputLine($this->tellmaticClient->getSubscribeState($email)->getSubscribeState());
-	}
+    /**
+     * Sends an unsubscribe request.
+     *
+     * @param string $email
+     * @param bool $doNotSendEmails
+     * @param string $memo
+     * @param int $newsletterId
+     * @param int $historyId
+     * @param int $queueId
+     */
+    public function unsubscribeCommand(
+        $email,
+        $doNotSendEmails = false,
+        $memo = '',
+        $newsletterId = 0,
+        $historyId = 0,
+        $queueId = 0
+    ) {
+        $unsubscribeRequest = GeneralUtility::makeInstance(UnsubscribeRequest::class, $email);
 
-	/**
-	 * Sends an unsubscribe request.
-	 *
-	 * @param string $email
-	 * @param bool $doNotSendEmails
-	 * @param string $memo
-	 * @param int $newsletterId
-	 * @param int $historyId
-	 * @param int $queueId
-	 */
-	public function unsubscribeCommand($email, $doNotSendEmails = FALSE, $memo = '', $newsletterId = 0, $historyId = 0, $queueId = 0) {
+        if ($doNotSendEmails) {
+            $unsubscribeRequest->setDoNotSendEmails(true);
+        }
 
-		$unsubscribeRequest = GeneralUtility::makeInstance(UnsubscribeRequest::class, $email);
+        if (!empty($memo)) {
+            $unsubscribeRequest->getMemo()->addLineToMemo($memo);
+        }
 
-		if ($doNotSendEmails) {
-			$unsubscribeRequest->setDoNotSendEmails(TRUE);
-		}
+        if (!empty($newsletterId)) {
+            $unsubscribeRequest->setNewsletterId($newsletterId);
+        }
 
-		if (!empty($memo)) {
-			$unsubscribeRequest->getMemo()->addLineToMemo($memo);
-		}
+        if (!empty($historyId)) {
+            $unsubscribeRequest->setHistoryId($historyId);
+        }
 
-		if (!empty($newsletterId)) {
-			$unsubscribeRequest->setNewsletterId($newsletterId);
-		}
+        if (!empty($queueId)) {
+            $unsubscribeRequest->setQueueId($queueId);
+        }
 
-		if (!empty($historyId)) {
-			$unsubscribeRequest->setHistoryId($historyId);
-		}
+        $unsubscribeRequest->getMemo()->addLineToMemo('unsubscribeCommand of TellmaticCommandController');
 
-		if (!empty($queueId)) {
-			$unsubscribeRequest->setQueueId($queueId);
-		}
-
-		$unsubscribeRequest->getMemo()->addLineToMemo('unsubscribeCommand of TellmaticCommandController');
-
-		$this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
-		$this->outputLine('Unsubscription was successful.');
-	}
+        $this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
+        $this->outputLine('Unsubscription was successful.');
+    }
 }

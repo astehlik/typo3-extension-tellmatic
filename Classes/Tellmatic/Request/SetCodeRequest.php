@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Request;
 
 /*                                                                        *
@@ -14,48 +15,49 @@ namespace Sto\Tellmatic\Tellmatic\Request;
 /**
  * Request for adding a new subscriber to Tellmatic.
  */
-class SetCodeRequest implements TellmaticRequestInterface {
+class SetCodeRequest implements TellmaticRequestInterface
+{
+    /**
+     * @var bool
+     */
+    protected $doNotSendEmails = false;
 
-	/**
-	 * @var bool
-	 */
-	protected $doNotSendEmails = FALSE;
+    /**
+     * The email address that should be subscribed.
+     *
+     * @var string
+     */
+    protected $email;
 
-	/**
-	 * The email address that should be subscribed.
-	 *
-	 * @var string
-	 */
-	protected $email;
+    /**
+     * @var Memo
+     */
+    protected $memo = '';
 
-	/**
-	 * @var Memo
-	 */
-	protected $memo = '';
+    /**
+     * Initializes a new SubscribeRequest for the given email address.
+     *
+     * @param int $addressId
+     * @param string $codeExternal
+     */
+    public function __construct($addressId, $codeExternal)
+    {
+        if (empty($addressId) || empty($codeExternal)) {
+            throw new \RuntimeException('The addressId and the codeExternal must not be empty.');
+        }
 
-	/**
-	 * Initializes a new SubscribeRequest for the given email address.
-	 *
-	 * @param int $addressId
-	 * @param string $codeExternal
-	 */
-	public function __construct($addressId, $codeExternal) {
+        $this->addressId = $addressId;
+        $this->codeExternal = $codeExternal;
+    }
 
-		if (empty($addressId) || empty($codeExternal)) {
-			throw new \RuntimeException('The addressId and the codeExternal must not be empty.');
-		}
-
-		$this->addressId = $addressId;
-		$this->codeExternal = $codeExternal;
-	}
-
-	/**
-	 * Initializes the given HTTP request with the required parameters.
-	 *
-	 * @param AccessibleHttpRequest $httpRequest
-	 */
-	public function initializeHttpRequest(AccessibleHttpRequest $httpRequest) {
-		$httpRequest->addPostParameter('addressId', $this->addressId);
-		$httpRequest->addPostParameter('codeExternal', $this->codeExternal);
-	}
+    /**
+     * Initializes the given HTTP request with the required parameters.
+     *
+     * @param AccessibleHttpRequest $httpRequest
+     */
+    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest)
+    {
+        $httpRequest->addPostParameter('addressId', $this->addressId);
+        $httpRequest->addPostParameter('codeExternal', $this->codeExternal);
+    }
 }

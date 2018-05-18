@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Request;
 
 /*                                                                        *
@@ -16,211 +17,223 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Request for adding a new subscriber to Tellmatic.
  */
-class SubscribeRequest implements TellmaticRequestInterface {
+class SubscribeRequest implements TellmaticRequestInterface
+{
+    /**
+     * Optional array containing additional field data (f0 - f9).
+     *
+     * @var array
+     */
+    protected $additionalFields = [];
 
-	/**
-	 * Optional array containing additional field data (f0 - f9).
-	 *
-	 * @var array
-	 */
-	protected $additionalFields = array();
+    /**
+     * @var bool
+     */
+    protected $doNotSendEmails = false;
 
-	/**
-	 * @var bool
-	 */
-	protected $doNotSendEmails = FALSE;
+    /**
+     * The email address that should be subscribed.
+     *
+     * @var string
+     */
+    protected $email;
 
-	/**
-	 * The email address that should be subscribed.
-	 *
-	 * @var string
-	 */
-	protected $email;
+    /**
+     * @var Memo
+     */
+    protected $memo = '';
 
-	/**
-	 * @var Memo
-	 */
-	protected $memo = '';
+    /**
+     * @var string
+     */
+    protected $overrideAddressStatus = null;
 
-	/**
-	 * @var string
-	 */
-	protected $overrideAddressStatus = NULL;
+    /**
+     * @var bool|null
+     */
+    protected $overrideDoubleOptInSetting = null;
 
-	/**
-	 * @var bool|null
-	 */
-	protected $overrideDoubleOptInSetting = NULL;
+    /**
+     * @var bool
+     */
+    protected $validateOnly = false;
 
-	/**
-	 * @var bool
-	 */
-	protected $validateOnly = FALSE;
+    /**
+     * Initializes a new SubscribeRequest for the given email address.
+     *
+     * @param string $email The email address that should be subscribed.
+     */
+    public function __construct($email)
+    {
+        if (empty($email) || !GeneralUtility::validEmail($email)) {
+            throw new \RuntimeException('The provided email address is invalid: ' . $email);
+        }
 
-	/**
-	 * Initializes a new SubscribeRequest for the given email address.
-	 *
-	 * @param string $email The email address that should be subscribed.
-	 */
-	public function __construct($email) {
+        $this->email = $email;
+        $this->memo = GeneralUtility::makeInstance(Memo::class);
+    }
 
-		if (empty($email) || !GeneralUtility::validEmail($email)) {
-			throw new \RuntimeException('The provided email address is invalid: ' . $email);
-		}
+    /**
+     * Initializes the given HTTP request with the required parameters.
+     *
+     * @param AccessibleHttpRequest $httpRequest
+     */
+    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest)
+    {
+        $this->appendDefaultMemo();
 
-		$this->email = $email;
-		$this->memo = GeneralUtility::makeInstance(Memo::class);
-	}
+        $httpRequest->addPostParameter('email', $this->email);
 
-	/**
-	 * Initializes the given HTTP request with the required parameters.
-	 *
-	 * @param AccessibleHttpRequest $httpRequest
-	 */
-	public function initializeHttpRequest(AccessibleHttpRequest $httpRequest) {
+        foreach ($this->additionalFields as $name => $value) {
+            $httpRequest->addPostParameter($name, $value);
+        }
 
-		$this->appendDefaultMemo();
+        $memo = $this->memo->getMemo();
+        if (!empty($memo)) {
+            $httpRequest->addPostParameter('memo', $memo);
+        }
 
-		$httpRequest->addPostParameter('email', $this->email);
+        if (isset($this->overrideAddressStatus)) {
+            $httpRequest->addPostParameter('overrideAddressStatus', $this->overrideAddressStatus);
+        }
 
-		foreach ($this->additionalFields as $name => $value) {
-			$httpRequest->addPostParameter($name, $value);
-		}
+        if ($this->validateOnly) {
+            $httpRequest->addPostParameter('validateOnly', true);
+        }
 
-		$memo = $this->memo->getMemo();
-		if (!empty($memo)) {
-			$httpRequest->addPostParameter('memo', $memo);
-		}
+        if ($this->doNotSendEmails) {
+            $httpRequest->addPostParameter('doNotSendEmails', true);
+        }
 
-		if (isset($this->overrideAddressStatus)) {
-			$httpRequest->addPostParameter('overrideAddressStatus', $this->overrideAddressStatus);
-		}
+        if (isset($this->overrideDoubleOptInSetting)) {
+            $httpRequest->addPostParameter('overrideDoubleOptInSetting', $this->overrideDoubleOptInSetting);
+        }
+    }
 
-		if ($this->validateOnly) {
-			$httpRequest->addPostParameter('validateOnly', TRUE);
-		}
+    /**
+     * This array will be used to check if all provided additional fields are valid.
+     *
+     * @return array
+     */
+    public static function getAllowedAdditionalFields()
+    {
+        return [
+            'f0' => '',
+            'f1' => '',
+            'f2' => '',
+            'f3' => '',
+            'f4' => '',
+            'f5' => '',
+            'f6' => '',
+            'f7' => '',
+            'f8' => '',
+            'f9' => '',
+        ];
+    }
 
-		if ($this->doNotSendEmails) {
-			$httpRequest->addPostParameter('doNotSendEmails', TRUE);
-		}
+    /**
+     * @return bool
+     */
+    public function getDoNotSendEmails()
+    {
+        return $this->doNotSendEmails;
+    }
 
-		if (isset($this->overrideDoubleOptInSetting)) {
-			$httpRequest->addPostParameter('overrideDoubleOptInSetting', $this->overrideDoubleOptInSetting);
-		}
-	}
+    /**
+     * @return Memo
+     */
+    public function getMemo()
+    {
+        return $this->memo;
+    }
 
-	/**
-	 * This array will be used to check if all provided additional fields are valid.
-	 *
-	 * @return array
-	 */
-	public static function getAllowedAdditionalFields() {
-		return array(
-			'f0' => '',
-			'f1' => '',
-			'f2' => '',
-			'f3' => '',
-			'f4' => '',
-			'f5' => '',
-			'f6' => '',
-			'f7' => '',
-			'f8' => '',
-			'f9' => '',
-		);
-	}
+    /**
+     * @return string
+     */
+    public function getOverrideAddressStatus()
+    {
+        return $this->overrideAddressStatus;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function getDoNotSendEmails() {
-		return $this->doNotSendEmails;
-	}
+    /**
+     * @return bool|null
+     */
+    public function getOverrideDoubleOptInSetting()
+    {
+        return $this->overrideDoubleOptInSetting;
+    }
 
-	/**
-	 * @return Memo
-	 */
-	public function getMemo() {
-		return $this->memo;
-	}
+    /**
+     * @return bool
+     */
+    public function getValidateOnly()
+    {
+        return $this->validateOnly;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getOverrideAddressStatus() {
-		return $this->overrideAddressStatus;
-	}
+    /**
+     * Sets the array containing the additional fields that should be submitted with the subscribe request.
+     *
+     * @param array $additionalFields Optional array containing additional field data (f0 - f9).
+     */
+    public function setAdditionalFields(array $additionalFields)
+    {
+        $invalidAdditionalFields = array_diff_key($additionalFields, static::getAllowedAdditionalFields());
 
-	/**
-	 * @return bool|null
-	 */
-	public function getOverrideDoubleOptInSetting() {
-		return $this->overrideDoubleOptInSetting;
-	}
+        if (count($invalidAdditionalFields)) {
+            throw new \RuntimeException(
+                'You provided invalid additional Fields: ' . implode(', ', array_keys($invalidAdditionalFields))
+            );
+        }
 
-	/**
-	 * @return bool
-	 */
-	public function getValidateOnly() {
-		return $this->validateOnly;
-	}
+        $this->additionalFields = $additionalFields;
+    }
 
-	/**
-	 * Sets the array containing the additional fields that should be submitted with the subscribe request.
-	 *
-	 * @param array $additionalFields Optional array containing additional field data (f0 - f9).
-	 */
-	public function setAdditionalFields(array $additionalFields) {
+    /**
+     * @param bool $doNotSendEmails
+     */
+    public function setDoNotSendEmails($doNotSendEmails)
+    {
+        $this->doNotSendEmails = $doNotSendEmails;
+    }
 
-		$invalidAdditionalFields = array_diff_key($additionalFields, static::getAllowedAdditionalFields());
+    /**
+     * @param string $overrideAddressStatus
+     */
+    public function setOverrideAddressStatus($overrideAddressStatus)
+    {
+        $this->overrideAddressStatus = $overrideAddressStatus;
+    }
 
-		if (count($invalidAdditionalFields)) {
-			throw new \RuntimeException('You provided invalid additional Fields: ' . implode(', ', array_keys($invalidAdditionalFields)));
-		}
+    /**
+     * @param bool|null $overrideDoubleOptInSetting
+     */
+    public function setOverrideDoubleOptInSetting($overrideDoubleOptInSetting)
+    {
+        $this->overrideDoubleOptInSetting = $overrideDoubleOptInSetting;
+    }
 
-		$this->additionalFields = $additionalFields;
-	}
+    /**
+     * @param bool $validateOnly
+     */
+    public function setValidateOnly($validateOnly)
+    {
+        $this->validateOnly = (bool)$validateOnly;
+    }
 
-	/**
-	 * @param bool $doNotSendEmails
-	 */
-	public function setDoNotSendEmails($doNotSendEmails) {
-		$this->doNotSendEmails = $doNotSendEmails;
-	}
+    /**
+     * Adds some information to the memo that is stored in the Tellmatic address record.
+     */
+    protected function appendDefaultMemo()
+    {
+        $this->memo->appendDefaultMemo($this);
 
-	/**
-	 * @param string $overrideAddressStatus
-	 */
-	public function setOverrideAddressStatus($overrideAddressStatus) {
-		$this->overrideAddressStatus = $overrideAddressStatus;
-	}
+        if ($this->overrideAddressStatus) {
+            $this->memo->addLineToMemo('Address status overwritten: ' . $this->overrideAddressStatus);
+        }
 
-	/**
-	 * @param bool|null $overrideDoubleOptInSetting
-	 */
-	public function setOverrideDoubleOptInSetting($overrideDoubleOptInSetting) {
-		$this->overrideDoubleOptInSetting = $overrideDoubleOptInSetting;
-	}
-
-	/**
-	 * @param bool $validateOnly
-	 */
-	public function setValidateOnly($validateOnly) {
-		$this->validateOnly = (bool)$validateOnly;
-	}
-
-	/**
-	 * Adds some information to the memo that is stored in the Tellmatic address record.
-	 */
-	protected function appendDefaultMemo() {
-
-		$this->memo->appendDefaultMemo($this);
-
-		if ($this->overrideAddressStatus) {
-			$this->memo->addLineToMemo('Address status overwritten: ' . $this->overrideAddressStatus);
-		}
-
-		if ($this->overrideDoubleOptInSetting) {
-			$this->memo->addLineToMemo('Double opt-in setting overwritten: ' . $this->overrideDoubleOptInSetting);
-		}
-	}
+        if ($this->overrideDoubleOptInSetting) {
+            $this->memo->addLineToMemo('Double opt-in setting overwritten: ' . $this->overrideDoubleOptInSetting);
+        }
+    }
 }

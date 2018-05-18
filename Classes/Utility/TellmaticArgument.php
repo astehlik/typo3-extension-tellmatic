@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility;
 
 /*                                                                        *
@@ -17,12 +18,13 @@ use TYPO3\CMS\Extbase\Error\Result;
  * This class makes the validation results property of controller arguments accessible.
  * This is required to pass on error messages in the subscribe controller.
  */
-class TellmaticArgument extends \TYPO3\CMS\Extbase\Mvc\Controller\Argument {
-
-	/**
-	 * @param Result $validationResults
-	 */
-	public function setValidationResults(Result $validationResults) {
-		$this->validationResults = $validationResults;
-	}
+class TellmaticArgument extends \TYPO3\CMS\Extbase\Mvc\Controller\Argument
+{
+    /**
+     * @param Result $validationResults
+     */
+    public function setValidationResults(Result $validationResults)
+    {
+        $this->validationResults = $validationResults;
+    }
 }

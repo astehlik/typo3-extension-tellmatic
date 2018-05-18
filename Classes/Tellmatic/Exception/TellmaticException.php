@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Exception;
 
 /*                                                                        *
@@ -14,27 +15,29 @@ namespace Sto\Tellmatic\Tellmatic\Exception;
 /**
  * Generic Tellmatic Exception.
  */
-class TellmaticException extends \Exception {
+class TellmaticException extends \Exception
+{
+    /**
+     * @var string
+     */
+    protected $failureCode;
 
-	/**
-	 * @var string
-	 */
-	protected $failureCode;
+    /**
+     * @param array $responseData
+     * @param int $code
+     * @param null $previous
+     */
+    public function __construct(array $responseData, $code = 1441711143, $previous = null)
+    {
+        $this->failureCode = $responseData['failure_code'];
+        parent::__construct($responseData['failure_reason'], $code, $previous);
+    }
 
-	/**
-	 * @param array $responseData
-	 * @param int $code
-	 * @param null $previous
-	 */
-	public function __construct(array $responseData, $code = 1441711143, $previous = NULL) {
-		$this->failureCode = $responseData['failure_code'];
-		parent::__construct($responseData['failure_reason'], $code, $previous);
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getFailureCode() {
-		return $this->failureCode;
-	}
+    /**
+     * @return string
+     */
+    public function getFailureCode()
+    {
+        return $this->failureCode;
+    }
 }

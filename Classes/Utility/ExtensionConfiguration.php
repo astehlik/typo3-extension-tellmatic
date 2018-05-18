@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Utility;
 
 /*                                                                        *
@@ -17,64 +18,65 @@ use TYPO3\CMS\Core\Utility\ArrayUtility;
 /**
  * Provides access to the global extension configuration
  */
-class ExtensionConfiguration implements SingletonInterface {
+class ExtensionConfiguration implements SingletonInterface
+{
+    /**
+     * Array containing default settings
+     *
+     * @var array
+     */
+    protected $defaultSettings = [
+        'tellmaticUrl' => null,
+        'tellmaticApiKey' => null,
+    ];
 
-	/**
-	 * Array containing default settings
-	 *
-	 * @var array
-	 */
-	protected $defaultSettings = array(
-		'tellmaticUrl' => NULL,
-		'tellmaticApiKey' => NULL
-	);
+    /**
+     * Array containing the currently active settings
+     *
+     * @var array
+     */
+    protected $settings;
 
-	/**
-	 * Array containing the currently active settings
-	 *
-	 * @var array
-	 */
-	protected $settings;
+    /**
+     * Initializes the extension configuration
+     */
+    public function __construct()
+    {
+        $this->settings = $this->defaultSettings;
 
-	/**
-	 * Initializes the extension configuration
-	 */
-	public function __construct() {
+        if (isset($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic'])) {
+            $settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic']);
+            ArrayUtility::mergeRecursiveWithOverrule($this->settings, $settings);
+        }
+    }
 
-		$this->settings = $this->defaultSettings;
+    /**
+     * Returns the Tellmatic API key.
+     *
+     * @return string
+     */
+    public function getTellmaticApiKey()
+    {
+        if (empty($this->settings['tellmaticApiKey'])) {
+            throw new \RuntimeException('The Tellmatic API key is not configured in the Extension configuration.');
+        }
+        return $this->settings['tellmaticApiKey'];
+    }
 
-		if (isset($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic'])) {
-			$settings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['tellmatic']);
-			ArrayUtility::mergeRecursiveWithOverrule($this->settings, $settings);
-		}
-	}
+    /**
+     * Returns the URL to the tellmatic server with a trailing slash
+     *
+     * @return string
+     */
+    public function getTellmaticUrl()
+    {
+        $tellmaticUrl = $this->settings['tellmaticUrl'];
 
-	/**
-	 * Returns the Tellmatic API key.
-	 *
-	 * @return string
-	 */
-	public function getTellmaticApiKey() {
-		if (empty($this->settings['tellmaticApiKey'])) {
-			throw new \RuntimeException('The Tellmatic API key is not configured in the Extension configuration.');
-		}
-		return $this->settings['tellmaticApiKey'];
-	}
+        if (empty($tellmaticUrl)) {
+            return null;
+        }
 
-	/**
-	 * Returns the URL to the tellmatic server with a trailing slash
-	 *
-	 * @return string
-	 */
-	public function getTellmaticUrl() {
-
-		$tellmaticUrl = $this->settings['tellmaticUrl'];
-
-		if (empty($tellmaticUrl)) {
-			return NULL;
-		}
-
-		$tellmaticUrl = rtrim($tellmaticUrl, '/');
-		return $tellmaticUrl . '/';
-	}
+        $tellmaticUrl = rtrim($tellmaticUrl, '/');
+        return $tellmaticUrl . '/';
+    }
 }

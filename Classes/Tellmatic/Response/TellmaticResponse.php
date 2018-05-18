@@ -1,4 +1,5 @@
 <?php
+
 namespace Sto\Tellmatic\Tellmatic\Response;
 
 /*                                                                        *
@@ -14,14 +15,15 @@ namespace Sto\Tellmatic\Tellmatic\Response;
 /**
  * A generic response from the Tellmatic server.
  */
-class TellmaticResponse {
-
-	/**
-	 * Dummy method that can be used my child classes to get additional data from the response.
-	 *
-	 * @param array $response
-	 * @return void
-	 */
-	public function processAdditionalResponseData($response) {
-	}
+class TellmaticResponse
+{
+    /**
+     * Dummy method that can be used my child classes to get additional data from the response.
+     *
+     * @param array $response
+     * @return void
+     */
+    public function processAdditionalResponseData($response)
+    {
+    }
 }
