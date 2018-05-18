@@ -77,11 +77,21 @@
 			</trans-unit>
 			<trans-unit id="subscribe_label_privacy_policy_with_link" xml:space="preserve">
 				<source>I accept the %s.</source>
-				<target>Ich stimme den %s zu.</target>
+				<target>&lt;p&gt;Ich bin damit einverstanden, dass mich Intera über ausgewählte Themen
+						wie den Intera Produktkonfigurator, neue Lösungen und Produkte, Partnerschaften sowie Entwicklungen im Digitalisierungsumfeld informieren darf.&lt;/p&gt;
+						&lt;p&gt;Meine Daten werden ausschließlich zu diesem Zweck genutzt. Insbesondere erfolgt keine Weitergabe an unberechtigte Dritte.&lt;/p&gt;
+						&lt;p&gt;Mir ist bekannt, dass ich meine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen kann.&lt;/p&gt;
+						&lt;p&gt;Dies kann ich über folgende Kanäle tun: elektronisch über einen Abmeldelink im jeweiligen Newsletter, per E-Mail an: &lt;a href="mailto:mail@intera.de"&gt;mail@intera.de&lt;/a&gt; oder postalisch an:&lt;/p&gt;
+
+						&lt;address&gt;Intera Gesellschaft für Software-Entwicklung mbH&lt;br&gt;
+						Sophie-Scholl-Platz 8&lt;br&gt;
+						63452 Hanau&lt;/address&gt;
+
+						Es gilt die %s der Intera Gesellschaft für Software-Entwicklung mbH, die auch weitere Informationen über Möglichkeiten zur Berichtigung, Löschung und Sperrung meiner Daten beinhaltet.</target>
 			</trans-unit>
 			<trans-unit id="subscribe_label_privacy_policy_link_text" xml:space="preserve">
 				<source>privacy policy.</source>
-				<target>Datenschutzbestimmungen</target>
+				<target>Datenschutzerklärung</target>
 			</trans-unit>
 			<trans-unit id="subscribe_request_form_slogan" xml:space="preserve">
 				<source>Please fill out this form to subscribe to our newsletter.</source>
