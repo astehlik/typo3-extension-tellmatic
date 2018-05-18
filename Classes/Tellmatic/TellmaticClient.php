@@ -95,6 +95,7 @@ class TellmaticClient
         $this->responseClass = SubscribeStateResponse::class;
         $this->httpRequest->addPostParameter('email', $email);
 
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->doRequestAndGenerateResponse();
     }
 
@@ -105,6 +106,8 @@ class TellmaticClient
     public function sendAddressCountRequest(AddressCountRequest $addressCountRequest)
     {
         $this->initializeRequest('addressCount', $addressCountRequest, AddressCountResponse::class);
+
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->doRequestAndGenerateResponse();
     }
 
@@ -115,6 +118,8 @@ class TellmaticClient
     public function sendAddressSearchRequest(AddressSearchRequest $addressSearchRequest)
     {
         $this->initializeRequest('addressSearch', $addressSearchRequest, AddressSearchResponse::class);
+
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->doRequestAndGenerateResponse();
     }
 
@@ -195,6 +200,7 @@ class TellmaticClient
      */
     protected function createResponse()
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return GeneralUtility::makeInstance($this->responseClass);
     }
 

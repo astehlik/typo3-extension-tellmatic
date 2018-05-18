@@ -35,6 +35,16 @@ class SetCodeRequest implements TellmaticRequestInterface
     protected $memo = '';
 
     /**
+     * @var int
+     */
+    private $addressId;
+
+    /**
+     * @var string
+     */
+    private $codeExternal;
+
+    /**
      * Initializes a new SubscribeRequest for the given email address.
      *
      * @param int $addressId

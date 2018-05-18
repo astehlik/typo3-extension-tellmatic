@@ -28,7 +28,6 @@ class Memo
 
     /**
      * @param string $line
-     * @return string
      */
     public function addLineToMemo($line)
     {

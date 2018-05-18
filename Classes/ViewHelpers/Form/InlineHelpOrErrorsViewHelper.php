@@ -69,7 +69,7 @@ class InlineHelpOrErrorsViewHelper extends AbstractViewHelper
      * @param string $forProperty
      * @param string $originalProperty
      * @param boolean $includeChildProperties
-     * @return string
+     * @return array
      */
     protected function buildErrorMessages($validationResult, $forProperty, $originalProperty, $includeChildProperties)
     {
