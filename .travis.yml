@@ -4,16 +4,12 @@ matrix:
   fast_finish: true
 
   include:
-    - php: 5.5
-      env: TYPO3_BRANCH="TYPO3_6-2"
-    - php: 5.5
-      env: TYPO3_BRANCH="master"
-    - php: 5.6
-      env: TYPO3_BRANCH="TYPO3_6-2"
-    - php: 5.6
-      env: TYPO3_BRANCH="master"
+    - php: 7.2
+      env: TYPO3="^8.7" PHP_CS=yes
     - php: 7
-      env: TYPO3_BRANCH="master"
+      env: TYPO3="^7.6"
+    - php: 5.6
+      env: TYPO3="^6.2"
 
 sudo: false
 
@@ -27,23 +23,26 @@ cache:
     - $HOME/.composer/cache
 
 before_script:
-  - cd ..
-  - git clone --single-branch --branch $TYPO3_BRANCH --depth 1 https://github.com/TYPO3/TYPO3.CMS.git typo3_core
-  - mv typo3_core/* .
-  - composer self-update
-  - composer install
-  - mkdir -p uploads typo3temp typo3conf/ext
-  - mv typo3-extension-tellmatic typo3conf/ext/tellmatic
+  - export TYPO3_PATH_ROOT==$PWD/.Build/Web
+  - composer require typo3/cms:$TYPO3
 
 script:
   - >
     echo;
-    echo "Running unit tests";
-    ./bin/phpunit --colors -c typo3/sysext/core/Build/UnitTests.xml typo3conf/ext/tellmatic/Tests/Unit/
+    echo "Running php lint";
+    echo;
+    echo;
+    find . -name \*.php ! -path "./.Build/*" | parallel --gnu php -d display_errors=stderr -l {} > /dev/null \;
+  - >
+    if [ "$PHP_CS" == "yes" ]; then
+      echo;
+      echo "Running phpcs";
+      echo;
+      echo;
+      .Build/bin/phpcs --config-set installed_paths $PWD/.Build/vendor/de-swebhosting/php-codestyle/PhpCodeSniffer
+      .Build/bin/phpcs --standard=PSRDefault Classes Configuration/TCA Tests/Unit ext_emconf.php ext_localconf.php
+    fi
   - >
     echo;
-    export typo3DatabaseName="typo3";
-    export typo3DatabaseHost="localhost";
-    export typo3DatabaseUsername="root";
-    export typo3DatabasePassword="";
-    find . -wholename '*typo3conf/ext/tellmatic/Tests/Functional/*Test.php' | parallel --gnu 'echo; echo "Running functional test suite {}"; ./bin/phpunit --colors -c typo3/sysext/core/Build/FunctionalTests.xml {}'
+    echo "Running unit tests";
+    ./bin/phpunit --colors -c typo3/sysext/core/Build/UnitTests.xml typo3conf/ext/tellmatic/Tests/Unit/
