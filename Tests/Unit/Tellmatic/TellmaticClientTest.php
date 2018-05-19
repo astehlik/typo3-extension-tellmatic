@@ -104,14 +104,6 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      */
     public function sendSubscribeRequestReturnsTrueOnSuccess()
     {
-        if (GeneralUtility::compat_version('7.0')) {
-            $this->markTestSkipped(
-                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
-                . ' see https://forge.typo3.org/issues/67838'
-            );
-            return;
-        }
-
         $responseMock = $this->getMock('HTTP_Request2_Response', ['getStatus', 'getBody'], [], '', false);
         $responseMock->expects($this->once())->method('getStatus')->will(
             $this->returnValue(static::HTTP_STATUS_CODE_OK)
@@ -139,14 +131,6 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      */
     public function sendSubscribeRequestReturnsValidFailureCode($responseData, $expectedFailureCode)
     {
-        if (GeneralUtility::compat_version('7.0')) {
-            $this->markTestSkipped(
-                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
-                . ' see https://forge.typo3.org/issues/67838'
-            );
-            return;
-        }
-
         $responseMock = $this->getMock('HTTP_Request2_Response', ['getStatus', 'getBody'], [], '', false);
         $responseMock->expects($this->once())->method('getStatus')->will(
             $this->returnValue(static::HTTP_STATUS_CODE_OK)
@@ -210,14 +194,6 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      */
     public function sendSubscribeRequestThrowsExceptionOnErrorResponseCode()
     {
-        if (GeneralUtility::compat_version('7.0')) {
-            $this->markTestSkipped(
-                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
-                . ' see https://forge.typo3.org/issues/67838'
-            );
-            return;
-        }
-
         $responseMock = $this->getMock(
             'HTTP_Request2_Response',
             [
@@ -251,14 +227,6 @@ class TellmaticClientTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      */
     public function sendSubscribeRequestThrowsExceptionOnInvalidResponse()
     {
-        if (GeneralUtility::compat_version('7.0')) {
-            $this->markTestSkipped(
-                'Skipped because of problems with class loading in PEAR packages in TYPO3 7,'
-                . ' see https://forge.typo3.org/issues/67838'
-            );
-            return;
-        }
-
         $responseMock = $this->getMock('HTTP_Request2_Response', ['getStatus', 'getBody'], [], '', false);
         $responseMock->expects($this->once())->method('getStatus')->will(
             $this->returnValue(static::HTTP_STATUS_CODE_OK)
