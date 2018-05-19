@@ -3,6 +3,38 @@
 	<file source-language="en" target-language="de" datatype="plaintext" original="messages" date="2013-02-21T01:52:55Z" product-name="tellmatic">
 		<header/>
 		<body>
+			<trans-unit id="admin_notification_subject_subscribe_confirmation" xml:space="preserve">
+				<source>Newsletter subscription confirmed</source>
+				<target>Newsletteranmeldung bestätigt</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_subject_subscribe_request" xml:space="preserve">
+				<source>New newsletter subscription</source>
+				<target>Neue Newsletteranmeldung</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_subject_unsubscribe" xml:space="preserve">
+				<source>Newsletter unsubscribed</source>
+				<target>Newsletterabmeldung</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_subject_update" xml:space="preserve">
+				<source>Updated newsletter subscription</source>
+				<target>Newsletteranmeldung aktualisiert</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_subscribe_confirmation" xml:space="preserve">
+				<source>The email address %s has confirmed its newsletter subscription.</source>
+				<target>Die E-Mail-Adresse %s hat ihre Newsletteranmeldung bestätigt.</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_subscribe_request" xml:space="preserve">
+				<source>The email address %s has subscribed to the newsletter (unconfirmed).</source>
+				<target>Die E-Mail-Adresse %s hat sich zum Newsletter angemeldet (unbestätigt).</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_unsubscribe" xml:space="preserve">
+				<source>The email address %s has cancelled its newsletter subscription.</source>
+				<target>Die E-Mail-Adresse %s hat den Newsletter abbestellt.</target>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_update" xml:space="preserve">
+				<source>The email address %s has updated its newsletter subscription data.</source>
+				<target>Die E-Mail-Adresse %s hat ihre Daten zur Newsletteranmeldung aktualisiert.</target>
+			</trans-unit>
 			<trans-unit id="error.property.email.1221560718" xml:space="preserve">
 				<source>Please provide your email address.</source>
 				<target>Bitte geben Sie Ihre E-Mail-Adresse an.</target>

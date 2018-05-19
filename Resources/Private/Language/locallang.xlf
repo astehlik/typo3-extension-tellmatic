@@ -3,6 +3,30 @@
 	<file source-language="en" datatype="plaintext" original="messages" date="2013-02-21T01:52:55Z" product-name="tellmatic">
 		<header/>
 		<body>
+			<trans-unit id="admin_notification_subject_subscribe_confirmation" xml:space="preserve">
+				<source>Newsletter subscription confirmed</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_subject_subscribe_request" xml:space="preserve">
+				<source>New newsletter subscription</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_subject_unsubscribe" xml:space="preserve">
+				<source>Newsletter unsubscribed</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_subject_update" xml:space="preserve">
+				<source>Updated newsletter subscription</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_subscribe_confirmation" xml:space="preserve">
+				<source>The email address %s has confirmed its newsletter subscription.</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_subscribe_request" xml:space="preserve">
+				<source>The email address %s has subscribed to the newsletter (unconfirmed).</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_unsubscribe" xml:space="preserve">
+				<source>The email address %s has cancelled its newsletter subscription.</source>
+			</trans-unit>
+			<trans-unit id="admin_notification_text_update" xml:space="preserve">
+				<source>The email address %s has updated its newsletter subscription data.</source>
+			</trans-unit>
 			<trans-unit id="error.property.email.1221560718" xml:space="preserve">
 				<source>Please provide your email address.</source>
 			</trans-unit>

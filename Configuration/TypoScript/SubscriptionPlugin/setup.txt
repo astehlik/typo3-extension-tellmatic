@@ -58,6 +58,16 @@ plugin.tx_tellmatic {
             templatePath = EXT:tellmatic/Resources/Private/Templates/Subscribe/Mail/
         }
 
+        adminNotifications {
+            addresses = tellmatic@domain.tld
+            templatePath = EXT:tellmatic/Resources/Private/Templates/Subscribe/AdminNotifications/
+
+            subscribeRequest = {$plugin.tx_tellmatic.settings.enableAdminiNotifications}
+            subscribeConfirmation = {$plugin.tx_tellmatic.settings.enableAdminiNotifications}
+            unsubscribe = {$plugin.tx_tellmatic.settings.enableAdminiNotifications}
+            update = {$plugin.tx_tellmatic.settings.enableAdminiNotifications}
+        }
+
         template {
             displayRequiredFieldsHint = 0
         }

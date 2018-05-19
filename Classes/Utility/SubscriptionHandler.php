@@ -17,7 +17,9 @@ use Sto\Tellmatic\Tellmatic\Request\UnsubscribeRequest;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Utility\Exception\SubscribeConfirmInvalidStateException;
 use Tx\Authcode\Domain\Model\AuthCode;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use TYPO3\CMS\Fluid\View\TemplateView;
 
 /**
@@ -117,23 +119,9 @@ class SubscriptionHandler
             $mailtext = $mailview->render();
 
             $this->mailUtility->sendMail($email, $subject, $mailtext);
-            if ($this->settings['mail']['adminNotifications']['onSubscribeConfirm']) {
-                $subject = 'Neue Newsletterbestätigung';
-                $mailview = $this->mailUtility->getMailView(
-                    'SubscribeConfirmMessage',
-                    $this->settings['mail']['adminNotifications']['templatePath'],
-                    $this->view
-                );
-                $mailview->assign('email', $email);
-                $mailtext = $mailview->render();
-
-                $this->mailUtility->sendMail(
-                    $this->settings['mail']['adminNotifications']['addresses'],
-                    $subject,
-                    $mailtext
-                );
-            }
         }
+
+        $this->sendAdminNotification($email, 'subscribeConfirmation');
     }
 
     /**
@@ -181,22 +169,7 @@ class SubscriptionHandler
         $unsubscribeRequest->getMemo()->addLineToMemo($memo);
         $this->tellmaticClient->sendUnsubscribeRequest($unsubscribeRequest);
 
-        if ($this->settings['mail']['adminNotifications']['onUnsubscribe']) {
-            $subject = 'Newsletterabmeldung';
-            $mailview = $this->mailUtility->getMailView(
-                'UnsubscribeMessage',
-                $this->settings['mail']['adminNotifications']['templatePath'],
-                $this->view
-            );
-            $mailview->assign('email', $email);
-            $mailtext = $mailview->render();
-
-            $this->mailUtility->sendMail(
-                $this->settings['mail']['adminNotifications']['addresses'],
-                $subject,
-                $mailtext
-            );
-        }
+        $this->sendAdminNotification($email, 'unsubscribe');
     }
 
     /**
@@ -230,6 +203,7 @@ class SubscriptionHandler
      */
     public function handleUpdateSubmit($email, array $additionalData, $memo)
     {
+        $this->sendAdminNotification($email, 'update');
         $this->sendSubscribeRequest($email, $additionalData, $memo, 'confirmed');
     }
 
@@ -302,25 +276,10 @@ class SubscriptionHandler
             $this->settings['mail']['templatePath'],
             $this->view
         );
+
         $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
 
-        if ($this->settings['mail']['adminNotifications']['onSubscribeRequest']) {
-            $subject = 'Neue Newsletteranmeldung';
-
-            $mailview = $this->mailUtility->getMailView(
-                'SubscribeRequestMessage',
-                $this->settings['mail']['adminNotifications']['templatePath'],
-                $this->view
-            );
-            $mailview->assign('email', $email);
-            $mailtext = $mailview->render();
-
-            $this->mailUtility->sendMail(
-                $this->settings['mail']['adminNotifications']['addresses'],
-                $subject,
-                $mailtext
-            );
-        }
+        $this->sendAdminNotification($email, 'subscribeRequest');
     }
 
     /**
@@ -352,25 +311,8 @@ class SubscriptionHandler
             $this->settings['mail']['templatePath'],
             $this->view
         );
+
         $this->mailUtility->sendAuthCodeMail('updateForm', $authCode, $subject, $mailView, $this->uriBuilder, true);
-
-        if ($this->settings['mail']['adminNotifications']['onUpdate']) {
-            $subject = 'Änderung Newsletterdaten';
-
-            $mailview = $this->mailUtility->getMailView(
-                'UpdateMessage',
-                $this->settings['mail']['adminNotifications']['templatePath'],
-                $this->view
-            );
-            $mailview->assign('email', $email);
-            $mailtext = $mailview->render();
-
-            $this->mailUtility->sendMail(
-                $this->settings['mail']['adminNotifications']['addresses'],
-                $subject,
-                $mailtext
-            );
-        }
     }
 
     /**
@@ -403,7 +345,30 @@ class SubscriptionHandler
             $this->settings['mail']['templatePath'],
             $this->view
         );
-        $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
+
+        $this->mailUtility->sendAuthCodeMail('subscribeRequest', $authCode, $subject, $mailView, $this->uriBuilder);
+    }
+
+    /**
+     * @param string $email
+     * @param string $notification
+     */
+    protected function sendAdminNotification($email, $notification)
+    {
+        if (empty($this->settings['adminNotifications'][$notification])) {
+            return;
+        }
+
+        $notificationTranslationKey = GeneralUtility::camelCaseToLowerCaseUnderscored($notification);
+
+        $subject = $this->translate('admin_notification_subject_' . $notificationTranslationKey);
+        $mailtext = $this->translate('admin_notification_text_' . $notificationTranslationKey, [$email]);
+
+        $this->mailUtility->sendMail(
+            $this->settings['adminNotifications']['addresses'],
+            $subject,
+            $mailtext
+        );
     }
 
     /**
@@ -431,5 +396,10 @@ class SubscriptionHandler
         $subscribeRequest->setOverrideAddressStatus($status);
         $subscribeRequest->getMemo()->addLineToMemo($memo);
         $this->tellmaticClient->sendSubscribeRequest($subscribeRequest);
+    }
+
+    private function translate($key, array $arguments = [])
+    {
+        return LocalizationUtility::translate($key, 'Tellmatic', $arguments);
     }
 }
