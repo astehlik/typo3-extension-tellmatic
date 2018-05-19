@@ -22,8 +22,7 @@
 	"require": {
 		"php": "^5.6||^7.0",
 		"typo3/cms-core": "^6.2|^7.6|^8.6",
-		"intera-typo3-extension/authcode": "*",
-		"typo3/cms": "^6.2"
+		"intera-typo3-extension/authcode": "*"
 	},
 	"require-dev": {
 		"squizlabs/php_codesniffer": "^3.2",
