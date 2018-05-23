@@ -40,6 +40,8 @@ class TypoLinkViewHelperTestextends extends ViewHelperBaseTestcase
         );
 
         $GLOBALS['TSFE'] = new TypoScriptFrontendController([], 0, 0);
+        $GLOBALS['TSFE']->config = [];
+        $GLOBALS['TSFE']->config['config']['typolinkEnableLinksAcrossDomains'] = 0;
 
         $this->assertEquals(
             '<a href="http://www.google.de">linktxt</a>',
