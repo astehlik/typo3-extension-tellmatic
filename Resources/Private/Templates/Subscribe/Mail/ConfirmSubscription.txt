@@ -3,6 +3,6 @@ Wir freuen uns, dass Sie sich für unseren Newsletter interessieren.
 
 Mit dem folgenden Link können Sie Ihre Anmeldung bestätigen.
 
-{actionUrl}
+{actionUrl -> f:format.raw()}
 
 Vielen Dank.

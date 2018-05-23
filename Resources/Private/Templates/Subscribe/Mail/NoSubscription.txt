@@ -1,6 +1,6 @@
 
 Vielen Dank für Ihre Anforderung.
 
-Die E-Mail Adresse {email} ist noch nicht in unserer Datenbank registriert.
+Die E-Mail Adresse {email -> f:format.raw()} ist noch nicht in unserer Datenbank registriert.
 
 Falls Sie an unserem Newsletter interessiert sind, können Sie diesen jederzeit auf unserer Homepage abonnieren.
