@@ -12,6 +12,8 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Http\HttpRequestInterface;
+
 /**
  * Request for searching addresses in the tellmatic database.
  */
@@ -60,9 +62,9 @@ class AddressSearchRequest implements TellmaticRequestInterface
     /**
      * Initializes the given HTTP request with the required parameters.
      *
-     * @param AccessibleHttpRequest $httpRequest
+     * @param HttpRequestInterface $httpRequest
      */
-    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest)
+    public function initializeHttpRequest(HttpRequestInterface $httpRequest)
     {
         $httpRequest->addPostParameter('fetchDetails', $this->fetchDetails);
         $httpRequest->addPostParameter('groupId', $this->groupId);

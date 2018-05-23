@@ -12,9 +12,10 @@ namespace Sto\Tellmatic\Tellmatic;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Http\HttpRequestFactory;
+use Sto\Tellmatic\Http\HttpRequestInterface;
 use Sto\Tellmatic\Tellmatic\Exception\InvalidResponseException;
 use Sto\Tellmatic\Tellmatic\Exception\TellmaticException;
-use Sto\Tellmatic\Tellmatic\Request\AccessibleHttpRequest;
 use Sto\Tellmatic\Tellmatic\Request\AddressCountRequest;
 use Sto\Tellmatic\Tellmatic\Request\AddressSearchRequest;
 use Sto\Tellmatic\Tellmatic\Request\SetCodeRequest;
@@ -25,6 +26,7 @@ use Sto\Tellmatic\Tellmatic\Response\AddressCountResponse;
 use Sto\Tellmatic\Tellmatic\Response\AddressSearchResponse;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
 use Sto\Tellmatic\Tellmatic\Response\TellmaticResponse;
+use Sto\Tellmatic\Utility\ExtensionConfiguration;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -32,13 +34,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class TellmaticClient
 {
-    /**
-     * This URL overrides the default URL from the extension configuration
-     *
-     * @var string
-     */
-    protected $customUrl;
-
     /**
      * Default URLs to the different APIs
      *
@@ -54,29 +49,24 @@ class TellmaticClient
     ];
 
     /**
-     * @var \Sto\Tellmatic\Utility\ExtensionConfiguration
-     * @inject
+     * @var ExtensionConfiguration
      */
     protected $extensionConfiguration;
 
     /**
-     * @var AccessibleHttpRequest
+     * @var HttpRequestFactory
      */
-    protected $httpRequest;
+    protected $httpRequestFactory;
 
-    /**
-     * Configuration that should be used for the HTTP request
-     *
-     * @var array
-     */
-    protected $httpRequestConfiguration = ['follow_redirects' => true];
+    public function injectExtensionConfiguration(ExtensionConfiguration $extensionConfiguration)
+    {
+        $this->extensionConfiguration = $extensionConfiguration;
+    }
 
-    /**
-     * The class that should be used as response
-     *
-     * @var string
-     */
-    protected $responseClass = TellmaticResponse::class;
+    public function injectHttpRequestFactory(HttpRequestFactory $httpRequestFactory)
+    {
+        $this->httpRequestFactory = $httpRequestFactory;
+    }
 
     /**
      * @param string $email
@@ -85,18 +75,17 @@ class TellmaticClient
      */
     public function getSubscribeState($email)
     {
-        $this->initializeHttpRequest();
-        $this->httpRequest->setUrl($this->getUrl('getSubscribeState'));
+        $request = $this->initializeHttpRequest();
+        $request->setUrl($this->getUrl('getSubscribeState'));
 
         if (!GeneralUtility::validEmail($email)) {
             throw new \InvalidArgumentException('The provided email address is invalid');
         }
 
-        $this->responseClass = SubscribeStateResponse::class;
-        $this->httpRequest->addPostParameter('email', $email);
+        $request->addPostParameter('email', $email);
 
         /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->doRequestAndGenerateResponse();
+        return $this->doRequestAndGenerateResponse($request, new SubscribeStateResponse());
     }
 
     /**
@@ -105,10 +94,10 @@ class TellmaticClient
      */
     public function sendAddressCountRequest(AddressCountRequest $addressCountRequest)
     {
-        $this->initializeRequest('addressCount', $addressCountRequest, AddressCountResponse::class);
+        $request = $this->initializeRequest('addressCount', $addressCountRequest);
 
         /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->doRequestAndGenerateResponse();
+        return $this->doRequestAndGenerateResponse($request, new AddressCountResponse());
     }
 
     /**
@@ -117,10 +106,10 @@ class TellmaticClient
      */
     public function sendAddressSearchRequest(AddressSearchRequest $addressSearchRequest)
     {
-        $this->initializeRequest('addressSearch', $addressSearchRequest, AddressSearchResponse::class);
+        $request = $this->initializeRequest('addressSearch', $addressSearchRequest);
 
         /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->doRequestAndGenerateResponse();
+        return $this->doRequestAndGenerateResponse($request, new AddressSearchResponse());
     }
 
     /**
@@ -129,8 +118,8 @@ class TellmaticClient
      */
     public function sendSetCodeRequest(SetCodeRequest $setCodeRequest)
     {
-        $this->initializeRequest('setCode', $setCodeRequest);
-        return $this->doRequestAndGenerateResponse();
+        $request = $this->initializeRequest('setCode', $setCodeRequest);
+        return $this->doRequestAndGenerateResponse($request, new TellmaticResponse());
     }
 
     /**
@@ -141,8 +130,8 @@ class TellmaticClient
      */
     public function sendSubscribeRequest(SubscribeRequest $subscribeRequest)
     {
-        $this->initializeRequest('subscribe', $subscribeRequest);
-        return $this->doRequestAndGenerateResponse();
+        $request = $this->initializeRequest('subscribe', $subscribeRequest);
+        return $this->doRequestAndGenerateResponse($request, new TellmaticResponse());
     }
 
     /**
@@ -151,43 +140,23 @@ class TellmaticClient
      */
     public function sendUnsubscribeRequest(UnsubscribeRequest $unsubscribeRequest)
     {
-        $this->initializeRequest('unsubscribe', $unsubscribeRequest);
-        return $this->doRequestAndGenerateResponse();
-    }
-
-    /**
-     * Sets a custom URL that should be used for the next request
-     *
-     * @param string $customUrl
-     */
-    public function setCustomUrl($customUrl)
-    {
-        if (!empty($customUrl)) {
-            $this->customUrl = $customUrl;
-        }
-    }
-
-    /**
-     * Setter for the HTTP request that should be used.
-     *
-     * @param \TYPO3\CMS\Core\Http\HttpRequest $httpRequest
-     */
-    public function setHttpRequest($httpRequest)
-    {
-        $this->httpRequest = $httpRequest;
+        $request = $this->initializeRequest('unsubscribe', $unsubscribeRequest);
+        return $this->doRequestAndGenerateResponse($request, new TellmaticResponse());
     }
 
     /**
      * Adds a hmac POST parameter based on the serialized POST parameters array.
+     *
+     * @param HttpRequestInterface $request
      */
-    protected function addApiKeyToPostParameters()
+    protected function addApiKeyToPostParameters(HttpRequestInterface $request)
     {
-        $postParameters = $this->httpRequest->getPostParameters();
+        $postParameters = $request->getPostParameters();
 
         $encryptionKeyBackup = $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'];
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = $this->getTellmaticApiKey();
 
-        $this->httpRequest->addPostParameter(
+        $request->addPostParameter(
             'apiKey',
             GeneralUtility::hmac(serialize($postParameters), 'TellmaticAPI')
         );
@@ -196,28 +165,19 @@ class TellmaticClient
     }
 
     /**
-     * @return \Sto\Tellmatic\Tellmatic\Response\TellmaticResponse
-     */
-    protected function createResponse()
-    {
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return GeneralUtility::makeInstance($this->responseClass);
-    }
-
-    /**
+     * @param HttpRequestInterface $httpRequest
+     * @param TellmaticResponse $tellmaticResponse
      * @return TellmaticResponse
-     * @throws InvalidResponseException
      */
-    protected function doRequestAndGenerateResponse()
-    {
-        $this->addApiKeyToPostParameters();
+    protected function doRequestAndGenerateResponse(
+        HttpRequestInterface $httpRequest,
+        TellmaticResponse $tellmaticResponse
+    ) {
+        $this->addApiKeyToPostParameters($httpRequest);
 
-        $tellmaticResponse = $this->createResponse();
+        $httpResponse = $httpRequest->send();
 
-        $this->httpRequest->setMethod('POST');
-        $httpResponse = $this->httpRequest->send();
-
-        $responseStatus = $httpResponse->getStatus();
+        $responseStatus = $httpResponse->getStatusCode();
         if ($responseStatus !== 200) {
             throw new InvalidResponseException(
                 sprintf(
@@ -229,7 +189,7 @@ class TellmaticClient
             );
         }
 
-        $responseBody = $httpResponse->getBody();
+        $responseBody = $httpResponse->getBodyContents();
 
         $parsedResponse = json_decode($responseBody, true);
         if (!isset($parsedResponse)) {
@@ -247,9 +207,6 @@ class TellmaticClient
         } else {
             $this->handleTellmaticError($parsedResponse);
         }
-
-        // Reset HTTP request.
-        $this->httpRequest = null;
 
         return $tellmaticResponse;
     }
@@ -274,17 +231,13 @@ class TellmaticClient
      */
     protected function getUrl($requestType)
     {
-        if (isset($this->customUrl)) {
-            $url = $this->customUrl;
-        } else {
-            $baseUrl = $this->extensionConfiguration->getTellmaticUrl();
+        $baseUrl = $this->extensionConfiguration->getTellmaticUrl();
 
-            if (empty($baseUrl) || parse_url($baseUrl) === false) {
-                throw new \RuntimeException('No valid base URL was configured: ' . $baseUrl);
-            }
-
-            $url = $baseUrl . $this->defaultUrls[$requestType];
+        if (empty($baseUrl) || parse_url($baseUrl) === false) {
+            throw new \RuntimeException('No valid base URL was configured: ' . $baseUrl);
         }
+
+        $url = $baseUrl . $this->defaultUrls[$requestType];
 
         return $url;
     }
@@ -322,15 +275,12 @@ class TellmaticClient
      *
      * Additionally the configuration of the HTTP request will be
      * initialized.
+     *
+     * @return HttpRequestInterface
      */
     protected function initializeHttpRequest()
     {
-        if (isset($this->httpRequest)) {
-            return;
-        }
-
-        $this->httpRequest = GeneralUtility::makeInstance(AccessibleHttpRequest::class);
-        $this->httpRequest->setConfiguration($this->httpRequestConfiguration);
+        return $this->httpRequestFactory->createHttpRequest();
     }
 
     /**
@@ -338,19 +288,15 @@ class TellmaticClient
      *
      * @param string $requestType
      * @param TellmaticRequestInterface $request
-     * @param string $responseClass
+     * @return HttpRequestInterface
      */
-    protected function initializeRequest($requestType, TellmaticRequestInterface $request, $responseClass = null)
+    protected function initializeRequest($requestType, TellmaticRequestInterface $request)
     {
-        $this->initializeHttpRequest();
+        $httpRequest = $this->initializeHttpRequest();
 
-        $this->httpRequest->setUrl($this->getUrl($requestType));
-        $request->initializeHttpRequest($this->httpRequest);
+        $httpRequest->setUrl($this->getUrl($requestType));
+        $request->initializeHttpRequest($httpRequest);
 
-        if (isset($responseClass)) {
-            $this->responseClass = $responseClass;
-        } else {
-            $this->responseClass = TellmaticResponse::class;
-        }
+        return $httpRequest;
     }
 }

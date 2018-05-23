@@ -1,6 +1,6 @@
 <?php
 
-namespace Sto\Tellmatic\Tellmatic\Request;
+namespace Sto\Tellmatic\Http;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,14 +12,28 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use Sto\Tellmatic\Http\HttpRequestInterface;
-
-interface TellmaticRequestInterface
+interface HttpRequestInterface
 {
     /**
-     * Initializes the given HTTP request with the required parameters.
-     *
-     * @param HttpRequestInterface $httpRequest
+     * @param string $name
+     * @param string $value
+     * @return void
      */
-    public function initializeHttpRequest(HttpRequestInterface $httpRequest);
+    public function addPostParameter($name, $value);
+
+    /**
+     * @return array
+     */
+    public function getPostParameters();
+
+    /**
+     * @return HttpResponseInterface
+     */
+    public function send();
+
+    /**
+     * @param string $url
+     * @return void
+     */
+    public function setUrl($url);
 }

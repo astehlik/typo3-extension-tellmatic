@@ -12,6 +12,8 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Http\HttpRequestInterface;
+
 /**
  * Request for counting addresses in the Tellmatic database.
  */
@@ -30,9 +32,9 @@ class AddressCountRequest implements TellmaticRequestInterface
     /**
      * Initializes the given HTTP request with the required parameters.
      *
-     * @param AccessibleHttpRequest $httpRequest
+     * @param HttpRequestInterface $httpRequest
      */
-    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest)
+    public function initializeHttpRequest(HttpRequestInterface $httpRequest)
     {
         foreach ($this->search as $field => $value) {
             $httpRequest->addPostParameter('search[' . $field . ']', $value);

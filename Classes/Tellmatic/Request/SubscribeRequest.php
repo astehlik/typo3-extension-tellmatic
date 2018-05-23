@@ -12,6 +12,7 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Http\HttpRequestInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -76,9 +77,9 @@ class SubscribeRequest implements TellmaticRequestInterface
     /**
      * Initializes the given HTTP request with the required parameters.
      *
-     * @param AccessibleHttpRequest $httpRequest
+     * @param HttpRequestInterface $httpRequest
      */
-    public function initializeHttpRequest(AccessibleHttpRequest $httpRequest)
+    public function initializeHttpRequest(HttpRequestInterface $httpRequest)
     {
         $this->appendDefaultMemo();
 

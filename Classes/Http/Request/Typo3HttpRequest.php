@@ -1,6 +1,6 @@
 <?php
 
-namespace Sto\Tellmatic\Tellmatic\Request;
+namespace Sto\Tellmatic\Http\Request;
 
 /*                                                                        *
  * This script belongs to the TYPO3 extension "tellmatic".                *
@@ -12,13 +12,12 @@ namespace Sto\Tellmatic\Tellmatic\Request;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use Sto\Tellmatic\Http\HttpRequestInterface;
+use Sto\Tellmatic\Http\Response\Typo3HttpResponse;
 use TYPO3\CMS\Core\Http\HttpRequest;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-/**
- * HTTP request class that allows access to the POST parameters and
- * makes sure all POST parameters added are strings.
- */
-class AccessibleHttpRequest extends HttpRequest
+class Typo3HttpRequest extends HttpRequest implements HttpRequestInterface
 {
     /**
      * Adds POST parameter(s) to the request.
@@ -47,5 +46,14 @@ class AccessibleHttpRequest extends HttpRequest
     public function getPostParameters()
     {
         return $this->postParams;
+    }
+
+    /**
+     * @return Typo3HttpResponse
+     */
+    public function send()
+    {
+        $response = parent::send();
+        return GeneralUtility::makeInstance(Typo3HttpResponse::class, $response);
     }
 }
