@@ -14,10 +14,12 @@ namespace Sto\Tellmatic\Controller;
 
 use Sto\Tellmatic\Command\AuthCodeCommandController;
 use Sto\Tellmatic\Tellmatic\Response\SubscribeStateResponse;
+use Sto\Tellmatic\Tellmatic\TellmaticClient;
 use Sto\Tellmatic\Utility\Exception\InvalidAuthCodeException;
 use Sto\Tellmatic\Utility\Exception\UpdateInvalidStateException;
 use Sto\Tellmatic\Utility\SubscriptionHandler;
 use Sto\Tellmatic\Utility\TellmaticArgument;
+use Tx\Authcode\Domain\Repository\AuthCodeRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Validation\Error as ValidationError;
@@ -36,8 +38,8 @@ class SubscribeController extends ActionController
     const AUTH_CODE_CONTEXT = 'tellmatic_subscribe_controller';
 
     /**
-     * @var \Tx\Authcode\Domain\Repository\AuthCodeRepository
-     * @inject
+     * @var AuthCodeRepository
+     *
      */
     protected $authCodeRepository;
 
@@ -47,10 +49,15 @@ class SubscribeController extends ActionController
     protected $logger;
 
     /**
-     * @var \Sto\Tellmatic\Tellmatic\TellmaticClient
-     * @inject
+     * @var TellmaticClient
+     *
      */
     protected $tellmaticClient;
+
+    public function injectAuthCodeRepository(AuthCodeRepository $authCodeRepository)
+    {
+        $this->authCodeRepository = $authCodeRepository;
+    }
 
     /**
      * @param \TYPO3\CMS\Core\Log\LogManager $logManager
@@ -58,6 +65,11 @@ class SubscribeController extends ActionController
     public function injectLogManager(\TYPO3\CMS\Core\Log\LogManager $logManager)
     {
         $this->logger = $logManager->getLogger(__CLASS__);
+    }
+
+    public function injectTellmaticClient(TellmaticClient $tellmaticClient)
+    {
+        $this->tellmaticClient = $tellmaticClient;
     }
 
     /**
