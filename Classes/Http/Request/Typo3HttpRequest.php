@@ -53,6 +53,7 @@ class Typo3HttpRequest extends HttpRequest implements HttpRequestInterface
      */
     public function send()
     {
+        $this->setMethod('POST');
         $response = parent::send();
         return GeneralUtility::makeInstance(Typo3HttpResponse::class, $response);
     }
