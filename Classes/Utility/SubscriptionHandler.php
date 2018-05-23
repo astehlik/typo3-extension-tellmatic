@@ -346,7 +346,7 @@ class SubscriptionHandler
             $this->view
         );
 
-        $this->mailUtility->sendAuthCodeMail('subscribeRequest', $authCode, $subject, $mailView, $this->uriBuilder);
+        $this->mailUtility->sendAuthCodeMail('subscribeConfirm', $authCode, $subject, $mailView, $this->uriBuilder);
     }
 
     /**
