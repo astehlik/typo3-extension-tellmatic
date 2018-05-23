@@ -38,8 +38,12 @@
 					<label>
 						<f:form.checkbox name="acceptConditions" value="true" checked="{acceptConditions}" />
 						<f:if condition="{settings.privacyPolicy.linkParameter}">
-							<f:then><f:translate id="subscribe_label_privacy_policy_with_link" arguments="{0: '{f:render(section: \'privacyPolicyLink\', arguments: \'{_all}\')}' }" /></f:then>
-							<f:else><f:translate id="subscribe_label_privacy_policy" /></f:else>
+							<f:then>
+								<f:format.html parseFuncTSPath="lib.parseFunc"><f:translate id="subscribe_label_privacy_policy_with_link" arguments="{0: '{f:render(section: \'privacyPolicyLink\', arguments: \'{_all}\')}' }" /></f:format.html>
+							</f:then>
+							<f:else>
+								<f:format.html parseFuncTSPath="lib.parseFunc"><f:translate id="subscribe_label_privacy_policy" /></f:format.html>
+							</f:else>
 						</f:if>
 					</label>
 				</div>
