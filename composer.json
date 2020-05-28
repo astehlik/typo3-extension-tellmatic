@@ -2,7 +2,7 @@
 	"name": "de-swebhosting-typo3-extension/tellmatic",
 	"description": "Provides methods to communicate with a tellmatic server.",
 	"type": "typo3-cms-extension",
-	"license": "GPL-3.0+",
+	"license": "GPL-3.0-or-later",
 	"authors": [
 		{
 			"name": "Alexander Stehlik",
@@ -30,7 +30,6 @@
 		"nimut/testing-framework": "^2.0"
 	},
 	"replace": {
-		"tellmatic": "self.version",
 		"typo3-ter/tellmatic": "self.version"
 	},
 	"config": {
